@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "ui_button.h": "c",
+        "include.h": "c",
+        "citro3d.h": "c",
+        "math.h": "c",
+        "3ds.h": "c",
+        "time.h": "c",
+        "string.h": "c",
+        "citro2d.h": "c",
+        "sprite_manager.h": "c",
+        "delta_time.h": "c",
+        "scene_manager.h": "c"
+    }
+}
