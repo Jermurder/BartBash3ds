@@ -1,8 +1,12 @@
 #include "include.h"
-#include <memory>
+#include <malloc.h>
 
 constexpr int SCREEN_WIDTH = 400;
 constexpr int SCREEN_HEIGHT = 240;
+
+#define SOC_ALIGN       0x1000
+#define SOC_BUFFERSIZE  0x100000
+static u32* SOC_buffer = nullptr;
 
 static SpriteManager spriteManager;
 
@@ -19,6 +23,22 @@ SceneManager scenemanager;
 
 // Store font globally for reuse
 static C2D_Font font = nullptr;
+
+void initSOC() {
+    SOC_buffer = (u32*)memalign(SOC_ALIGN, SOC_BUFFERSIZE);
+if (!SOC_buffer) {
+    // Can't use printf yet, fallback to crash
+    svcBreak(USERBREAK_PANIC);
+}
+
+Result ret = socInit(SOC_buffer, SOC_BUFFERSIZE);
+if (ret != 0) {
+    svcBreak(USERBREAK_PANIC);
+}
+
+// redirect stdout/printf to 3dslink
+link3dsStdio();
+}
 
 void texts() {
     font = C2D_FontLoad("romfs:/fonts/Helvetica.bcfnt");
@@ -118,27 +138,14 @@ void drawBottom(C3D_RenderTarget* target) {
     }
 }
 
-void loadMusic() {
-    AudioManager_Load("bort", "romfs:/sounds/bort.bcwav");
-    AudioManager_Load("bashs", "romfs:/sounds/bashs.bcwav");
-}
-
-void musicPlayer() {
-    if (scenemanager.currentScene == 0) {
-        AudioManager_Play("bort", 1);
-    } else if (scenemanager.currentScene == 1) {
-        AudioManager_Play("bashs", 0);
-    }
-}
 
 int main(int argc, char* argv[]) {
+    initSOC();
     romfsInit();
     gfxInitDefault();
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
     C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
     C2D_Prepare();
-
-  //  AudioManager_Init();
 
     auto* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     auto* bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
@@ -152,7 +159,6 @@ int main(int argc, char* argv[]) {
     loadUI();
     texts();
     loadSprites();
-   // loadMusic();
 
     while (aptMainLoop()) {
     	DeltaTime_Update();
@@ -195,6 +201,6 @@ int main(int argc, char* argv[]) {
     C3D_Fini();
     gfxExit();
     romfsExit();
-
+    socExit();
     return 0;
 }

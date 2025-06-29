@@ -6,7 +6,8 @@
                 "${default}",
                 "${workspaceFolder}/source",
                 "C:/devKitPro/libctru/include/**",
-                "C:/devKitPro/libcwav/**"
+                "C:/devKitPro/libcwav/**",
+                "C:/devkitPro/portlibs/3ds/**"
             ],
             "defines": [
                 "_DEBUG",

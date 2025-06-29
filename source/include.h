@@ -9,13 +9,14 @@
 #include <math.h>
 #include <stdlib.h>
 #include <cwav.h>
+#include <opus.h>
 
 #include "delta_time.h"
 #include "ui_text.h"
 #include "ui_button.h"
 #include "sprite_manager.h"
 #include "scene_manager.h"
-#include "audio_manager.h"
+
 
 
 
