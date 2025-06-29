@@ -1,4 +1,4 @@
-ui_button.o: C:/Users/jermu/documents/3ds/bartbash/source/ui_button.c \
+ui_button.o: C:/Users/jermu/documents/3ds/bartbash/source/ui_button.cpp \
  C:/Users/jermu/documents/3ds/bartbash/source/ui_button.h \
  C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \

@@ -1,4 +1,4 @@
-main.o: C:/Users/jermu/documents/3ds/bartbash/source/main.c \
+main.o: C:/Users/jermu/documents/3ds/bartbash/source/main.cpp \
  C:/Users/jermu/documents/3ds/bartbash/source/include.h \
  C:/devkitPro/libctru/include/citro2d.h \
  C:/devkitPro/libctru/include/citro3d.h \

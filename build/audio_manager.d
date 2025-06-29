@@ -1,5 +1,5 @@
 audio_manager.o: \
- C:/Users/jermu/documents/3ds/bartbash/source/audio_manager.c \
+ C:/Users/jermu/documents/3ds/bartbash/source/audio_manager.cpp \
  C:/Users/jermu/documents/3ds/bartbash/source/audio_manager.h \
  C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \

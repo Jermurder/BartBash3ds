@@ -1,5 +1,5 @@
 sprite_manager.o: \
- C:/Users/jermu/documents/3ds/bartbash/source/sprite_manager.c \
+ C:/Users/jermu/documents/3ds/bartbash/source/sprite_manager.cpp \
  C:/Users/jermu/documents/3ds/bartbash/source/sprite_manager.h \
  C:/Users/jermu/documents/3ds/bartbash/source/include.h \
  C:/devkitPro/libctru/include/citro2d.h \

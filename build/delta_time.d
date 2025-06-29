@@ -1,4 +1,4 @@
-delta_time.o: C:/Users/jermu/documents/3ds/bartbash/source/delta_time.c \
+delta_time.o: C:/Users/jermu/documents/3ds/bartbash/source/delta_time.cpp \
  C:/Users/jermu/documents/3ds/bartbash/source/delta_time.h \
  C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \

@@ -1,4 +1,4 @@
-ui_text.o: C:/Users/jermu/documents/3ds/bartbash/source/ui_text.c \
+ui_text.o: C:/Users/jermu/documents/3ds/bartbash/source/ui_text.cpp \
  C:/Users/jermu/documents/3ds/bartbash/source/ui_text.h \
  C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \
