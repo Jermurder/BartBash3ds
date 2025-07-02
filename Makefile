@@ -57,15 +57,14 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcitro2d -lcitro3d -lctru -lm -lcwav -lncsnd
+LIBS	:= -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
 LIBDIRS := \
-    $(DEVKITPRO)/libcwav \
-    $(DEVKITPRO)/libncsnd \
+    $(DEVKITPRO)/portlibs \
     $(CTRULIB)
 
 
@@ -226,7 +225,7 @@ $(OUTPUT).elf	:	$(OFILES)
 	$(bin2o)
 
 
--include $(DEPSDIR)/*.d
+-include $(wildcard $(DEPSDIR)/*.d)
 
 #---------------------------------------------------------------------------------------
 endif

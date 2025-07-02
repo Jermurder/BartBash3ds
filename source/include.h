@@ -8,8 +8,8 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
-#include <cwav.h>
-#include <opus.h>
+
+
 
 #include "delta_time.h"
 #include "ui_text.h"

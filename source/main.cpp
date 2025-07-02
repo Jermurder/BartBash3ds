@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     SpriteManager_Load(&spriteManager, "UI1", "romfs:/gfx/UI1.t3x");
     SpriteManager_Load(&spriteManager, "UI2", "romfs:/gfx/UI2.t3x");
     SpriteManager_Load(&spriteManager, "UI3", "romfs:/gfx/backgrounds.t3x");
-    SpriteManager_Load(&spriteManager, "logo", "romfs:/gfx/logo.t3x");
+    SpriteManager_Load(&spriteManager, "logo", "romfs:/gfx/logo.t3x"); 
 
     loadUI();
     texts();
