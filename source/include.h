@@ -8,6 +8,9 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include <opus.h>
+#include <opusfile.h>
+#include <box2d/box2d.h>
 
 
 
