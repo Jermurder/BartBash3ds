@@ -12,6 +12,9 @@ static SpriteManager spriteManager;
 
 int gamestate = 0; // 0 = menu, 1 = game
 
+int bartphase = 1; // Select, Drop, Dropped
+
+
 UIButton startButton, howtoplayButton;
 C2D_Sprite mainmenuSprites[3];
 touchPosition touch;
@@ -84,6 +87,8 @@ void drawTransition() {
 
 void onStartButtonClick() {
     changeScene(&scenemanager, 1);
+    audioManagerStop();
+    audioManagerPlay("romfs:/sounds/bashs.opus");
     redrawTop = true;
     redrawBottom = true;
 }
@@ -116,16 +121,10 @@ void drawTop(C3D_RenderTarget* target) {
     if (scenemanager.currentScene == 0) {
         C2D_DrawSprite(&mainmenuSprites[0]);
         C2D_DrawSprite(&mainmenuSprites[1]);
-
-    } else if (scenemanager.currentScene == 1) {
-        C2D_Sprite background;
-        C2D_SpriteFromSheet(&background, SpriteManager_GetSheet(&spriteManager, "UI3"), 1);
-        C2D_DrawSprite(&background);
     }
 }
 
 void drawBottom(C3D_RenderTarget* target) {
-    hidTouchRead(&touch);
     C2D_TargetClear(target, C2D_Color32(0, 0, 0, 0));
     C2D_SceneBegin(target);
 
@@ -136,8 +135,25 @@ void drawBottom(C3D_RenderTarget* target) {
         UIButton_Update(&howtoplayButton, touch); 
         UIButton_Draw(&howtoplayButton);
     }
-}
+    else if (scenemanager.currentScene == 1) {
+        C2D_Sprite background;
+        C2D_SpriteFromSheet(&background, SpriteManager_GetSheet(&spriteManager, "UI3"), 1);
+        C2D_SpriteSetPos(&background, 17, 0);
+        C2D_DrawSprite(&background);
 
+            b2Body* player = PhysicsManager_GetPlayer();
+        if (player) {
+            b2Vec2 pos = player->GetPosition();
+            float px = MetersToPixels(pos.x);
+            float py = MetersToPixels(pos.y);
+            C2D_Sprite playerSprite;
+            C2D_SpriteFromSheet(&playerSprite, SpriteManager_GetSheet(&spriteManager, "barts"), 0);
+            C2D_SpriteSetPos(&playerSprite, px, py);
+            C2D_SpriteSetRotation(&playerSprite, player->GetAngle());
+            C2D_DrawSprite(&playerSprite);
+        }
+    }
+}
 
 int main(int argc, char* argv[]) {
     initSOC();
@@ -154,21 +170,31 @@ int main(int argc, char* argv[]) {
     SpriteManager_Load(&spriteManager, "UI1", "romfs:/gfx/UI1.t3x");
     SpriteManager_Load(&spriteManager, "UI2", "romfs:/gfx/UI2.t3x");
     SpriteManager_Load(&spriteManager, "UI3", "romfs:/gfx/backgrounds.t3x");
-    SpriteManager_Load(&spriteManager, "logo", "romfs:/gfx/logo.t3x"); 
+    SpriteManager_Load(&spriteManager, "logo", "romfs:/gfx/logo.t3x");
+    SpriteManager_Load(&spriteManager, "barts", "romfs:/gfx/barts.t3x"); 
 
     loadUI();
     texts();
     loadSprites();
+    audioManagerInit();
+    audioManagerPlay("romfs:/sounds/bort.opus");
 
+    PhysicsManager_Init();
     while (aptMainLoop()) {
     	DeltaTime_Update();
         float dt = DeltaTime_Get();
 
-
+        
+        hidTouchRead(&touch);
         hidScanInput();
         u32 kDown = hidKeysDown();
         if (kDown & KEY_START) break;
 
+            if (kDown & KEY_TOUCH) {
+            hidTouchRead(&touch);
+            PhysicsManager_SpawnPlayer(touch.px, touch.py);
+        }
+        PhysicsManager_Update(1.0f / 60.0f);
         startButton.onClick = onStartButtonClick;
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
      	drawTop(top);
@@ -196,7 +222,7 @@ int main(int argc, char* argv[]) {
         C2D_FontFree(font);
         font = nullptr;
     }
-
+    audioManagerExit();
     C2D_Fini();
     C3D_Fini();
     gfxExit();

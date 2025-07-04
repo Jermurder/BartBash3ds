@@ -1,5 +1,5 @@
-ui_text.o: C:/Users/jermu/Documents/3ds/bartbash/source/ui_text.cpp \
- C:/Users/jermu/Documents/3ds/bartbash/source/ui_text.h \
+ui_text.o: C:/Users/jermu/documents/3ds/Bartbash/source/ui_text.cpp \
+ C:/Users/jermu/documents/3ds/Bartbash/source/ui_text.h \
  C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \
  C:/devkitPro/libctru/include/3ds/result.h \
@@ -110,7 +110,7 @@ ui_text.o: C:/Users/jermu/Documents/3ds/bartbash/source/ui_text.cpp \
  C:/devkitPro/libctru/include/c2d/sprite.h \
  C:/devkitPro/libctru/include/c2d/text.h \
  C:/devkitPro/libctru/include/c2d/font.h
-C:/Users/jermu/Documents/3ds/bartbash/source/ui_text.h:
+C:/Users/jermu/documents/3ds/Bartbash/source/ui_text.h:
 C:/devkitPro/libctru/include/3ds.h:
 C:/devkitPro/libctru/include/3ds/types.h:
 C:/devkitPro/libctru/include/3ds/result.h:

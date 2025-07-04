@@ -160,7 +160,9 @@ main.o: C:/Users/jermu/Documents/3ds/bartbash/source/main.cpp \
  C:/Users/jermu/Documents/3ds/bartbash/source/ui_text.h \
  C:/Users/jermu/Documents/3ds/bartbash/source/ui_button.h \
  C:/Users/jermu/Documents/3ds/bartbash/source/sprite_manager.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/scene_manager.h
+ C:/Users/jermu/Documents/3ds/bartbash/source/scene_manager.h \
+ C:/Users/jermu/Documents/3ds/bartbash/source/audio_manager.h \
+ C:/Users/jermu/Documents/3ds/bartbash/source/physics_manager.h
 C:/Users/jermu/Documents/3ds/bartbash/source/include.h:
 C:/devkitPro/libctru/include/citro2d.h:
 C:/devkitPro/libctru/include/citro3d.h:
@@ -323,3 +325,5 @@ C:/Users/jermu/Documents/3ds/bartbash/source/ui_text.h:
 C:/Users/jermu/Documents/3ds/bartbash/source/ui_button.h:
 C:/Users/jermu/Documents/3ds/bartbash/source/sprite_manager.h:
 C:/Users/jermu/Documents/3ds/bartbash/source/scene_manager.h:
+C:/Users/jermu/Documents/3ds/bartbash/source/audio_manager.h:
+C:/Users/jermu/Documents/3ds/bartbash/source/physics_manager.h:

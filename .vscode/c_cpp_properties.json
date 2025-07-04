@@ -1,22 +1,22 @@
-    {
+{
     "configurations": [
         {
-            "name": "Linux",
+            "name": "Win32",
             "includePath": [
                 "${default}",
                 "${workspaceFolder}/source",
-                "/opt/devkitpro/libctru/include**",
-                "/opt/devkitpro/portlibs/3ds/include**"
+                "C:/devKitPro/libctru/include/**",
+                "C:/devKitPro/libcwav/**",
+                "C:/devkitPro/portlibs/3ds/**"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc",
+            "compilerPath": "C:/devKitPro/devkitARM/bin/arm-none-eabi-gcc.exe",
             "cStandard": "c11",
-            "cppStandard": "c++14",
-            "intelliSenseMode": "linux-gcc-arm"
+            "cppStandard": "c++14"
         }
     ],
     "version": 4
