@@ -140,7 +140,7 @@ void drawBottom(C3D_RenderTarget* target) {
         C2D_SpriteFromSheet(&background, SpriteManager_GetSheet(&spriteManager, "UI3"), 1);
         C2D_SpriteSetPos(&background, 17, 0);
         C2D_DrawSprite(&background);
-
+        drawBarts();
             b2Body* player = PhysicsManager_GetPlayer();
         if (player) {
             b2Vec2 pos = player->GetPosition();
@@ -180,6 +180,9 @@ int main(int argc, char* argv[]) {
     audioManagerPlay("romfs:/sounds/bort.opus");
 
     PhysicsManager_Init();
+
+    addBart(100, 100, BartType::REGULAR_BART);
+    initBarts(&spriteManager);
     while (aptMainLoop()) {
     	DeltaTime_Update();
         float dt = DeltaTime_Get();

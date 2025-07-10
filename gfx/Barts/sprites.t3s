@@ -1,11 +1,11 @@
 --atlas -f rgba8888 -z auto
 bart.png
-bartc.png
 bartd.png
-bartg.png
 bartsel.png
 copf.png
 gfake.png
-gwbart.png
+bartc.png
+bartg.png
 sbartc.png
 sbartg.png
+gwbart.png

@@ -10,6 +10,14 @@
         "citro2d.h": "c",
         "sprite_manager.h": "c",
         "delta_time.h": "c",
-        "scene_manager.h": "c"
+        "scene_manager.h": "c",
+        "array": "cpp",
+        "charconv": "cpp",
+        "compare": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "variant": "cpp"
     }
 }

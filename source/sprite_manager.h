@@ -8,10 +8,10 @@ typedef struct {
     C2D_SpriteSheet sheet;
 } SpriteSheetEntry;
 
-typedef struct {
+struct SpriteManager {
     SpriteSheetEntry entries[MAX_SPRITESHEETS];
     int count;
-} SpriteManager;
+};
 
 void SpriteManager_Init(SpriteManager* manager);
 bool SpriteManager_Load(SpriteManager* manager, const char* name, const char* path);
