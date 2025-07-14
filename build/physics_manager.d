@@ -1,6 +1,6 @@
 physics_manager.o: \
- C:/Users/jermu/Documents/3ds/bartbash/source/physics_manager.cpp \
- C:/Users/jermu/Documents/3ds/bartbash/source/physics_manager.h \
+ C:/Users/Jermu/documents/3ds/bartbash/source/physics_manager.cpp \
+ C:/Users/Jermu/documents/3ds/bartbash/source/physics_manager.h \
  C:/devkitPro/portlibs/3ds/include/box2d/box2d.h \
  C:/devkitPro/portlibs/3ds/include/box2d/b2_settings.h \
  C:/devkitPro/portlibs/3ds/include/box2d/b2_types.h \
@@ -38,7 +38,7 @@ physics_manager.o: \
  C:/devkitPro/portlibs/3ds/include/box2d/b2_revolute_joint.h \
  C:/devkitPro/portlibs/3ds/include/box2d/b2_weld_joint.h \
  C:/devkitPro/portlibs/3ds/include/box2d/b2_wheel_joint.h
-C:/Users/jermu/Documents/3ds/bartbash/source/physics_manager.h:
+C:/Users/Jermu/documents/3ds/bartbash/source/physics_manager.h:
 C:/devkitPro/portlibs/3ds/include/box2d/box2d.h:
 C:/devkitPro/portlibs/3ds/include/box2d/b2_settings.h:
 C:/devkitPro/portlibs/3ds/include/box2d/b2_types.h:

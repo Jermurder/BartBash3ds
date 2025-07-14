@@ -1,6 +1,8 @@
 #pragma once
 #include <3ds.h>
 #include <citro2d.h>
+#include <iterator>
+#include <box2d/box2d.h>
 struct SpriteManager;
 
 enum class BartType
@@ -17,6 +19,7 @@ struct Bart
     bool clicked;
     bool initialized = false;
     C2D_Sprite sprite;
+    b2Body* body = nullptr;
 };
 
 extern Bart barts[40];

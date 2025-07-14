@@ -1,4 +1,2 @@
 --atlas -f rgba8888 -z auto
-stone.png
-wacgkround.png
-RELEASE.png
+display.png

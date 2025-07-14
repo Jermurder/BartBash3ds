@@ -122,6 +122,16 @@ void drawTop(C3D_RenderTarget* target) {
         C2D_DrawSprite(&mainmenuSprites[0]);
         C2D_DrawSprite(&mainmenuSprites[1]);
     }
+    else if (scenemanager.currentScene == 1) {
+        C2D_Sprite display;
+        C2D_SpriteFromSheet(&display, SpriteManager_GetSheet(&spriteManager, "UI4"), 0);
+        C2D_SpriteSetPos(&display, 13, 100);
+        C2D_DrawSprite(&display);
+        C2D_SpriteSetPos(&display, 146, 100);
+        C2D_DrawSprite(&display);
+        C2D_SpriteSetPos(&display, 279, 100);
+        C2D_DrawSprite(&display);
+    }
 }
 
 void drawBottom(C3D_RenderTarget* target) {
@@ -138,7 +148,7 @@ void drawBottom(C3D_RenderTarget* target) {
     else if (scenemanager.currentScene == 1) {
         C2D_Sprite background;
         C2D_SpriteFromSheet(&background, SpriteManager_GetSheet(&spriteManager, "UI3"), 1);
-        C2D_SpriteSetPos(&background, 17, 0);
+        C2D_SpriteSetPos(&background, 28, 0);
         C2D_DrawSprite(&background);
         drawBarts();
             b2Body* player = PhysicsManager_GetPlayer();
@@ -147,14 +157,16 @@ void drawBottom(C3D_RenderTarget* target) {
             float px = MetersToPixels(pos.x);
             float py = MetersToPixels(pos.y);
             C2D_Sprite playerSprite;
+            
             C2D_SpriteFromSheet(&playerSprite, SpriteManager_GetSheet(&spriteManager, "barts"), 0);
             C2D_SpriteSetPos(&playerSprite, px, py);
             C2D_SpriteSetRotation(&playerSprite, player->GetAngle());
+            C2D_SpriteSetCenter(&playerSprite, 0.5f, 0.5f);
             C2D_DrawSprite(&playerSprite);
         }
     }
 }
-
+ 
 int main(int argc, char* argv[]) {
     initSOC();
     romfsInit();
@@ -172,6 +184,7 @@ int main(int argc, char* argv[]) {
     SpriteManager_Load(&spriteManager, "UI3", "romfs:/gfx/backgrounds.t3x");
     SpriteManager_Load(&spriteManager, "logo", "romfs:/gfx/logo.t3x");
     SpriteManager_Load(&spriteManager, "barts", "romfs:/gfx/barts.t3x"); 
+    SpriteManager_Load(&spriteManager, "UI4", "romfs:/gfx/UI4.t3x");
 
     loadUI();
     texts();
@@ -181,7 +194,8 @@ int main(int argc, char* argv[]) {
 
     PhysicsManager_Init();
 
-    addBart(100, 100, BartType::REGULAR_BART);
+    addBart(100, 100, BartType::DIRT_BART);
+    addBart(220, 200, BartType::REGULAR_BART);
     initBarts(&spriteManager);
     while (aptMainLoop()) {
     	DeltaTime_Update();

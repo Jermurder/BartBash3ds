@@ -1,5 +1,5 @@
-delta_time.o: C:/Users/jermu/documents/3ds/Bartbash/source/delta_time.cpp \
- C:/Users/jermu/documents/3ds/Bartbash/source/delta_time.h \
+delta_time.o: C:/Users/Jermu/documents/3ds/bartbash/source/delta_time.cpp \
+ C:/Users/Jermu/documents/3ds/bartbash/source/delta_time.h \
  C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \
  C:/devkitPro/libctru/include/3ds/result.h \
@@ -86,7 +86,7 @@ delta_time.o: C:/Users/jermu/documents/3ds/Bartbash/source/delta_time.cpp \
  C:/devkitPro/libctru/include/3ds/font.h \
  C:/devkitPro/libctru/include/3ds/gdbhio_dev.h \
  C:/devkitPro/libctru/include/3ds/3dslink.h
-C:/Users/jermu/documents/3ds/Bartbash/source/delta_time.h:
+C:/Users/Jermu/documents/3ds/bartbash/source/delta_time.h:
 C:/devkitPro/libctru/include/3ds.h:
 C:/devkitPro/libctru/include/3ds/types.h:
 C:/devkitPro/libctru/include/3ds/result.h:

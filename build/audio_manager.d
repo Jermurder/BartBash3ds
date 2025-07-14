@@ -1,6 +1,6 @@
 audio_manager.o: \
- C:/Users/jermu/documents/3ds/Bartbash/source/audio_manager.cpp \
- C:/Users/jermu/documents/3ds/Bartbash/source/audio_manager.h \
+ C:/Users/Jermu/documents/3ds/bartbash/source/audio_manager.cpp \
+ C:/Users/Jermu/documents/3ds/bartbash/source/audio_manager.h \
  C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \
  C:/devkitPro/libctru/include/3ds/result.h \
@@ -95,7 +95,7 @@ audio_manager.o: \
  C:/devkitPro/portlibs/3ds/include/opus/opus.h \
  C:/devkitPro/portlibs/3ds/include/opus/opus_types.h \
  C:/devkitPro/portlibs/3ds/include/opus/opus_defines.h
-C:/Users/jermu/documents/3ds/Bartbash/source/audio_manager.h:
+C:/Users/Jermu/documents/3ds/bartbash/source/audio_manager.h:
 C:/devkitPro/libctru/include/3ds.h:
 C:/devkitPro/libctru/include/3ds/types.h:
 C:/devkitPro/libctru/include/3ds/result.h:
