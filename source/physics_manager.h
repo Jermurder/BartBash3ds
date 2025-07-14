@@ -1,5 +1,6 @@
 #pragma once
 #include <box2d/box2d.h>
+#include "collision_listener.h"
 
 float MetersToPixels(float m);
 float PixelsToMeters(float px);

@@ -6,6 +6,7 @@
 
 static b2World* world = nullptr;
 static b2Body* playerBody = nullptr;
+static CollisionListener collisionListener;
 
 float PixelsToMeters(float px) { return px * METERS_PER_PIXEL; }
 float MetersToPixels(float m)  { return m * PIXELS_PER_METER; }
@@ -40,6 +41,8 @@ void PhysicsManager_Init() {
     b2PolygonShape rightWallShape;
     rightWallShape.SetAsBox(PixelsToMeters(10), PixelsToMeters(120)); // 20px wide, 240px tall
     rightWall->CreateFixture(&rightWallShape, 0.0f);
+
+    world->SetContactListener(&collisionListener);
 }
 
 void PhysicsManager_Update(float dt) {
@@ -57,17 +60,42 @@ void PhysicsManager_SpawnPlayer(float screenX, float screenY) {
     def.position.Set(PixelsToMeters(screenX), PixelsToMeters(screenY));
     playerBody = world->CreateBody(&def);
 
-    b2PolygonShape shape;
-    shape.SetAsBox(PixelsToMeters(10), PixelsToMeters(20)); // 40x40 px box
+    // Capsule dimensions
+    float halfWidth = PixelsToMeters(3);   // radius for circles, half-width for box
+    float halfHeight = PixelsToMeters(15); // half-height for box
+
+    // Rectangle (center)
+    b2PolygonShape box;
+    box.SetAsBox(halfWidth, halfHeight);
+
+    // Top circle
+    b2CircleShape topCircle;
+    topCircle.m_radius = halfWidth;
+    topCircle.m_p.Set(0, -halfHeight);
+
+    // Bottom circle
+    b2CircleShape bottomCircle;
+    bottomCircle.m_radius = halfWidth;
+    bottomCircle.m_p.Set(0, halfHeight);
 
     b2FixtureDef fix;
-    fix.shape = &shape;
-    fix.density = 2.0f;
-    fix.friction = 0.3f;
-    fix.restitution = 0.2f;
+    fix.density = 0.5f;
+    fix.friction = 0.05f;
+    fix.restitution = 0.7f;
+
+   // playerBody->SetLinearDamping(1.0f); // Less friction than barts
+
+    // Attach all three shapes to the player body
+    fix.shape = &box;
     playerBody->CreateFixture(&fix);
-    // After creating the player body
-    playerBody->SetGravityScale(0.5f); // Falls at half normal speed
+
+    fix.shape = &topCircle;
+    playerBody->CreateFixture(&fix);
+
+    fix.shape = &bottomCircle;
+    playerBody->CreateFixture(&fix);
+
+    playerBody->SetGravityScale(0.2f); // Falls at half normal speed
 }
 
 b2Body* PhysicsManager_GetPlayer() {

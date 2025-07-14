@@ -193,9 +193,7 @@ int main(int argc, char* argv[]) {
     audioManagerPlay("romfs:/sounds/bort.opus");
 
     PhysicsManager_Init();
-
-    addBart(100, 100, BartType::DIRT_BART);
-    addBart(220, 200, BartType::REGULAR_BART);
+    spawnBarts();
     initBarts(&spriteManager);
     while (aptMainLoop()) {
     	DeltaTime_Update();
@@ -212,6 +210,7 @@ int main(int argc, char* argv[]) {
             PhysicsManager_SpawnPlayer(touch.px, touch.py);
         }
         PhysicsManager_Update(1.0f / 60.0f);
+        updateBartsAfterPhysics(); 
         startButton.onClick = onStartButtonClick;
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
      	drawTop(top);
