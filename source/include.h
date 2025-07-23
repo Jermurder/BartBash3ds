@@ -12,6 +12,7 @@
 #include <opusfile.h>
 #include <box2d/box2d.h>
 
+#include "globals.h"
 #include "delta_time.h"
 #include "ui_text.h"
 #include "ui_button.h"
@@ -21,8 +22,6 @@
 #include "physics_manager.h"
 #include "bart.h"
 #include "collision_listener.h"
-
-
 
 // Additional libraries you might need
 // #include <library_name.h>

@@ -14,27 +14,36 @@
 #define STACK_SIZE (32 * 1024)
 
 static ndspWaveBuf waveBufs[BUF_COUNT];
-static int16_t* audioBuf = nullptr;
+static int16_t *audioBuf = nullptr;
 static LightEvent audioEvent;
 static Thread audioThreadId = 0;
-static OggOpusFile* opusFile = nullptr;
+static OggOpusFile *opusFile = nullptr;
 static volatile bool quit = false;
- 
-static const char* opusStrError(int error) {
-    switch(error) {
-        case OP_EBADPACKET: return "Bad packet";
-        case OP_EINVAL: return "Invalid argument";
-        case OP_ENOTFORMAT: return "Not Opus format";
-        default: return "Unknown error";
+
+static const char *opusStrError(int error)
+{
+    switch (error)
+    {
+    case OP_EBADPACKET:
+        return "Bad packet";
+    case OP_EINVAL:
+        return "Invalid argument";
+    case OP_ENOTFORMAT:
+        return "Not Opus format";
+    default:
+        return "Unknown error";
     }
 }
 
-static bool fillBuffer(ndspWaveBuf* buf) {
+static bool fillBuffer(ndspWaveBuf *buf)
+{
     int total = 0;
-    while (total < BUF_SAMPLES) {
-        int16_t* dest = reinterpret_cast<int16_t*>(buf->data_pcm16) + total * CHANNELS;
+    while (total < BUF_SAMPLES)
+    {
+        int16_t *dest = reinterpret_cast<int16_t *>(buf->data_pcm16) + total * CHANNELS;
         int samples = op_read_stereo(opusFile, dest, (BUF_SAMPLES - total) * CHANNELS);
-        if (samples <= 0) {
+        if (samples <= 0)
+        {
             printf("Opus decode returned %d (EOF or error)\n", samples);
             return false;
         }
@@ -47,15 +56,22 @@ static bool fillBuffer(ndspWaveBuf* buf) {
     return true;
 }
 
-static void audioNDSPCallback(void*) {
-    if (!quit) LightEvent_Signal(&audioEvent);
+static void audioNDSPCallback(void *)
+{
+    if (!quit)
+        LightEvent_Signal(&audioEvent);
 }
 
-static void audioThreadFunc(void*) {
-    while (!quit) {
-        for (int i = 0; i < BUF_COUNT; ++i) {
-            if (waveBufs[i].status == NDSP_WBUF_DONE) {
-                if (!fillBuffer(&waveBufs[i])) {
+static void audioThreadFunc(void *)
+{
+    while (!quit)
+    {
+        for (int i = 0; i < BUF_COUNT; ++i)
+        {
+            if (waveBufs[i].status == NDSP_WBUF_DONE)
+            {
+                if (!fillBuffer(&waveBufs[i]))
+                {
                     printf("Failed to refill buffer %d\n", i);
                     return;
                 }
@@ -65,8 +81,10 @@ static void audioThreadFunc(void*) {
     }
 }
 
-bool audioManagerInit() {
-    if (ndspInit() != 0) {
+bool audioManagerInit()
+{
+    if (ndspInit() != 0)
+    {
         printf("ndspInit failed\n");
         return false;
     }
@@ -76,40 +94,46 @@ bool audioManagerInit() {
     ndspChnSetInterp(0, NDSP_INTERP_POLYPHASE);
     ndspChnSetRate(0, SAMPLE_RATE);
     ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
-    float mix[2] = { 1.0f, 1.0f }; // Left and right volume
+    float mix[2] = {1.0f, 1.0f}; // Left and right volume
     ndspChnSetMix(0, mix);
     ndspSetMasterVol(1.0f);
 
     ndspSetCallback(audioNDSPCallback, nullptr);
     LightEvent_Init(&audioEvent, RESET_ONESHOT);
 
-    audioBuf = static_cast<int16_t*>(linearAlloc(BUF_COUNT * BUF_SIZE));
-    if (!audioBuf) {
+    audioBuf = static_cast<int16_t *>(linearAlloc(BUF_COUNT * BUF_SIZE));
+    if (!audioBuf)
+    {
         printf("Failed to allocate audio buffer\n");
         return false;
     }
 
     std::memset(waveBufs, 0, sizeof(waveBufs));
-    for (int i = 0; i < BUF_COUNT; ++i) {
+    for (int i = 0; i < BUF_COUNT; ++i)
+    {
         waveBufs[i].data_vaddr = audioBuf + (i * BUF_SIZE / sizeof(int16_t));
     }
 
     return true;
 }
 
-void audioManagerExit() {
+void audioManagerExit()
+{
     audioManagerStop();
-    if (audioBuf) {
+    if (audioBuf)
+    {
         linearFree(audioBuf);
         audioBuf = nullptr;
     }
     ndspExit();
 }
 
-bool audioManagerPlay(const char* path) {
+bool audioManagerPlay(const char *path)
+{
     int err;
     opusFile = op_open_file(path, &err);
-    if (!opusFile) {
+    if (!opusFile)
+    {
         printf("Failed to open Opus file: %s (%d)\n", opusStrError(err), err);
         return false;
     }
@@ -119,8 +143,10 @@ bool audioManagerPlay(const char* path) {
     quit = false;
 
     // Pre-fill all buffers
-    for (int i = 0; i < BUF_COUNT; ++i) {
-        if (!fillBuffer(&waveBufs[i])) {
+    for (int i = 0; i < BUF_COUNT; ++i)
+    {
+        if (!fillBuffer(&waveBufs[i]))
+        {
             printf("Initial buffer fill failed\n");
             op_free(opusFile);
             opusFile = nullptr;
@@ -134,7 +160,8 @@ bool audioManagerPlay(const char* path) {
     prio = prio > 0x18 ? prio - 1 : prio;
 
     audioThreadId = threadCreate(audioThreadFunc, nullptr, STACK_SIZE, prio, -1, false);
-    if (audioThreadId == 0) {
+    if (audioThreadId == 0)
+    {
         op_free(opusFile);
         opusFile = nullptr;
         return false;
@@ -143,8 +170,10 @@ bool audioManagerPlay(const char* path) {
     return true;
 }
 
-void audioManagerStop() {
-    if (!opusFile) return;
+void audioManagerStop()
+{
+    if (!opusFile)
+        return;
 
     quit = true;
     LightEvent_Signal(&audioEvent);

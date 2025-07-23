@@ -1,7 +1,8 @@
 // ui_text.cpp
 #include "ui_text.h"
 
-void UIText::Init(const std::string& txtContent, C2D_Font f, float posX, float posY, float s, u32 col) {
+void UIText::Init(const std::string &txtContent, C2D_Font f, float posX, float posY, float s, u32 col)
+{
     content = txtContent;
     font = f;
     x = posX;
@@ -9,7 +10,8 @@ void UIText::Init(const std::string& txtContent, C2D_Font f, float posX, float p
     scale = s;
     color = col;
 
-    if (textBuf) {
+    if (textBuf)
+    {
         C2D_TextBufDelete(textBuf);
         textBuf = nullptr;
     }
@@ -19,10 +21,12 @@ void UIText::Init(const std::string& txtContent, C2D_Font f, float posX, float p
     C2D_TextOptimize(&text);
 }
 
-void UIText::SetText(const std::string& newText) {
+void UIText::SetText(const std::string &newText)
+{
     content = newText;
 
-    if (textBuf) {
+    if (textBuf)
+    {
         C2D_TextBufDelete(textBuf);
         textBuf = nullptr;
     }
@@ -32,12 +36,15 @@ void UIText::SetText(const std::string& newText) {
     C2D_TextOptimize(&text);
 }
 
-void UIText::Draw() const {
+void UIText::Draw() const
+{
     C2D_DrawText(&text, C2D_AtBaseline | C2D_WithColor, x, y, 0.0f, scale, scale, color);
 }
 
-void UIText::Free() {
-    if (textBuf) {
+void UIText::Free()
+{
+    if (textBuf)
+    {
         C2D_TextBufDelete(textBuf);
         textBuf = nullptr;
     }

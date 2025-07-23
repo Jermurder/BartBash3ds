@@ -4,7 +4,8 @@
 #include <3ds.h>
 #include <citro2d.h>
 
-struct UIText {
+struct UIText
+{
     std::string content;
     C2D_Font font;
     float x, y;
@@ -15,10 +16,10 @@ struct UIText {
     C2D_Text text;
 
     // Initialize the UIText with given parameters
-    void Init(const std::string& txtContent, C2D_Font f, float posX, float posY, float s, u32 col);
+    void Init(const std::string &txtContent, C2D_Font f, float posX, float posY, float s, u32 col);
 
     // Change the displayed text
-    void SetText(const std::string& newText);
+    void SetText(const std::string &newText);
 
     // Draw the text on screen
     void Draw() const;

@@ -1,8 +1,9 @@
 #include "ui_button.h"
-#include <3ds.h>  // For hidKeysDown, hidKeysUp and touchPosition
+#include <3ds.h>     // For hidKeysDown, hidKeysUp and touchPosition
 #include <citro2d.h> // For C2D_Sprite
 
-void UIButton_Init(UIButton* btn, C2D_SpriteSheet sheet, int spriteNormal, float x, float y, float width, float height) {
+void UIButton_Init(UIButton *btn, C2D_SpriteSheet sheet, int spriteNormal, float x, float y, float width, float height)
+{
     btn->sheet = sheet;
     btn->spriteNormal = spriteNormal;
     btn->spritePressed = spriteNormal;
@@ -19,17 +20,20 @@ void UIButton_Init(UIButton* btn, C2D_SpriteSheet sheet, int spriteNormal, float
     btn->spriteHover = 0;
 }
 
-void UIButton_SetHoverSprite(UIButton* btn, int spriteHover) {
+void UIButton_SetHoverSprite(UIButton *btn, int spriteHover)
+{
     btn->spriteHover = spriteHover;
     btn->hasHover = true;
 }
 
-void UIButton_SetPressedSprite(UIButton* btn, int spritePressed) {
+void UIButton_SetPressedSprite(UIButton *btn, int spritePressed)
+{
     btn->spritePressed = spritePressed;
     btn->hasPressed = true;
 }
 
-void UIButton_Update(UIButton* btn, touchPosition touch) {
+void UIButton_Update(UIButton *btn, touchPosition touch)
+{
     // Check if touch is within button bounds
     btn->hovered = (touch.px >= btn->x && touch.px <= btn->x + btn->width &&
                     touch.py >= btn->y && touch.py <= btn->y + btn->height);
@@ -37,24 +41,31 @@ void UIButton_Update(UIButton* btn, touchPosition touch) {
     u32 kDown = hidKeysDown();
     u32 kUp = hidKeysUp();
 
-    if (btn->hovered && (kDown & KEY_TOUCH)) {
+    if (btn->hovered && (kDown & KEY_TOUCH))
+    {
         btn->pressed = true;
     }
 
-    if (btn->pressed && (kUp & KEY_TOUCH)) {
+    if (btn->pressed && (kUp & KEY_TOUCH))
+    {
         btn->pressed = false;
-        if (btn->onClick) {
+        if (btn->onClick)
+        {
             btn->onClick();
         }
     }
 }
 
-void UIButton_Draw(UIButton* btn) {
+void UIButton_Draw(UIButton *btn)
+{
     int spriteIndex = btn->spriteNormal;
 
-    if (btn->pressed && btn->hasPressed) {
+    if (btn->pressed && btn->hasPressed)
+    {
         spriteIndex = btn->spritePressed;
-    } else if (btn->hovered && btn->hasHover) {
+    }
+    else if (btn->hovered && btn->hasHover)
+    {
         spriteIndex = btn->spriteHover;
     }
 
@@ -65,8 +76,8 @@ void UIButton_Draw(UIButton* btn) {
     C2D_DrawSprite(&sprite);
 
     // Draw label if attached
-    if (btn->label) {
-    btn->label->Draw();
-}
-
+    if (btn->label)
+    {
+        btn->label->Draw();
+    }
 }

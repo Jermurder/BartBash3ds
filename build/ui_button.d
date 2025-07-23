@@ -1,5 +1,5 @@
-ui_button.o: C:/Users/Jermu/documents/3ds/bartbash/source/ui_button.cpp \
- C:/Users/Jermu/documents/3ds/bartbash/source/ui_button.h \
+ui_button.o: C:/Users/jermu/documents/3ds/bartbash/source/ui_button.cpp \
+ C:/Users/jermu/documents/3ds/bartbash/source/ui_button.h \
  C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \
  C:/devkitPro/libctru/include/3ds/result.h \
@@ -110,8 +110,8 @@ ui_button.o: C:/Users/Jermu/documents/3ds/bartbash/source/ui_button.cpp \
  C:/devkitPro/libctru/include/c2d/sprite.h \
  C:/devkitPro/libctru/include/c2d/text.h \
  C:/devkitPro/libctru/include/c2d/font.h \
- C:/Users/Jermu/documents/3ds/bartbash/source/ui_text.h
-C:/Users/Jermu/documents/3ds/bartbash/source/ui_button.h:
+ C:/Users/jermu/documents/3ds/bartbash/source/ui_text.h
+C:/Users/jermu/documents/3ds/bartbash/source/ui_button.h:
 C:/devkitPro/libctru/include/3ds.h:
 C:/devkitPro/libctru/include/3ds/types.h:
 C:/devkitPro/libctru/include/3ds/result.h:
@@ -222,4 +222,4 @@ C:/devkitPro/libctru/include/c2d/spritesheet.h:
 C:/devkitPro/libctru/include/c2d/sprite.h:
 C:/devkitPro/libctru/include/c2d/text.h:
 C:/devkitPro/libctru/include/c2d/font.h:
-C:/Users/Jermu/documents/3ds/bartbash/source/ui_text.h:
+C:/Users/jermu/documents/3ds/bartbash/source/ui_text.h:

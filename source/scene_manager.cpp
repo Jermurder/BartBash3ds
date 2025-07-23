@@ -1,11 +1,14 @@
-#include <cstring>  // for strncpy
-#include <cmath>    // for fabsf
+#include <cstring> // for strncpy
+#include <cmath>   // for fabsf
 #include "scene_manager.h"
 
 // Add a new scene if there's a free slot
-void AddScene(SceneManager* scenemanager, const char* sceneName) {
-    for (int i = 0; i < 2; i++) {
-        if (scenemanager->allocatedscenes[i] == 0) {
+void AddScene(SceneManager *scenemanager, const char *sceneName)
+{
+    for (int i = 0; i < 2; i++)
+    {
+        if (scenemanager->allocatedscenes[i] == 0)
+        {
             // Copy sceneName safely into scenes[i].name
             // WARNING: scenes[i].name is const char*; you need to store string safely.
             // If you want to store a copy, consider changing 'name' to char array or std::string.
@@ -19,8 +22,10 @@ void AddScene(SceneManager* scenemanager, const char* sceneName) {
 }
 
 // Initialize transition to change to sceneIndex
-void changeScene(SceneManager* scenemanager, int sceneIndex) {
-    if (sceneIndex < 0 || sceneIndex >= 2 || scenemanager->allocatedscenes[sceneIndex] == 0) {
+void changeScene(SceneManager *scenemanager, int sceneIndex)
+{
+    if (sceneIndex < 0 || sceneIndex >= 2 || scenemanager->allocatedscenes[sceneIndex] == 0)
+    {
         return; // Invalid scene index or unallocated
     }
 
@@ -31,19 +36,24 @@ void changeScene(SceneManager* scenemanager, int sceneIndex) {
 }
 
 // Call this each frame with frame delta time to update transition progress
-void UpdateSceneTransition(SceneManager* scenemanager, float deltaTime) {
-    if (!scenemanager->isTransitioning) return;
+void UpdateSceneTransition(SceneManager *scenemanager, float deltaTime)
+{
+    if (!scenemanager->isTransitioning)
+        return;
 
     constexpr float duration = 1.0f;
 
     scenemanager->transitionProgress += deltaTime;
 
-    if (scenemanager->transitionProgress >= duration) {
+    if (scenemanager->transitionProgress >= duration)
+    {
         scenemanager->currentScene = scenemanager->nextScene;
         scenemanager->isTransitioning = false;
         scenemanager->transitionPhase = TRANSITION_NONE;
         scenemanager->transitionProgress = 0.0f;
-    } else {
+    }
+    else
+    {
         // Example easing value for transition (optional)
         float t = scenemanager->transitionProgress / duration;
         float value = 1.0f - std::fabs((t * 2.0f) - 1.0f);

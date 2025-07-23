@@ -4,18 +4,21 @@
 #include <citro2d.h>
 #include "delta_time.h"
 
-typedef enum {
-    TRANSITION_NONE,
-    TRANSITION_OUT,
-    TRANSITION_IN
+typedef enum
+{
+	TRANSITION_NONE,
+	TRANSITION_OUT,
+	TRANSITION_IN
 } TransitionPhase;
 
-struct Scene {
-	const char* name;
+struct Scene
+{
+	const char *name;
 	// Add other members as needed
 };
 
-struct SceneManager {
+struct SceneManager
+{
 	int currentScene;
 	float transitionProgress;
 	bool isTransitioning;
@@ -35,5 +38,5 @@ struct SceneManager {
 		  allocatedscenes{1, 1} {}
 };
 
-void AddScene(SceneManager* scenemanager, const char* sceneName);
-void changeScene(SceneManager* scenemanager, int sceneIndex);
+void AddScene(SceneManager *scenemanager, const char *sceneName);
+void changeScene(SceneManager *scenemanager, int sceneIndex);
