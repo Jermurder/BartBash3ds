@@ -22,6 +22,7 @@
 #include "physics_manager.h"
 #include "bart.h"
 #include "collision_listener.h"
+#include "animatePaint.h"
 
 // Additional libraries you might need
 // #include <library_name.h>

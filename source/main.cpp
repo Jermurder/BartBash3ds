@@ -197,6 +197,8 @@ void drawBottom(C3D_RenderTarget *target)
         C2D_SpriteSetPos(&background, 28, 0);
         C2D_DrawSprite(&background);
         drawBarts();
+
+        
         b2Body *player = PhysicsManager_GetPlayer();
         if (player)
         {
@@ -211,19 +213,21 @@ void drawBottom(C3D_RenderTarget *target)
             C2D_SpriteSetCenter(&playerSprite, 0.5f, 0.5f);
             C2D_DrawSprite(&playerSprite);
         }
+        
         if (bartphase == 0)
         {
-            player->SetType(b2_staticBody);
+            if (player)
+                player->SetType(b2_staticBody);
             if (kDown & KEY_TOUCH)
             {
-                findBart(touch, &selectedBarts, &spriteManager);
+               findBart(touch, &selectedBarts, &spriteManager);
             }
             if (kDown & KEY_A && selectedBarts > 0)
             {
                 bartphase = 1;
-                PhysicsManager_SpawnPlayer(190, 50);
+                PhysicsManager_SpawnPlayer(190, 20);
 
-                deinitBart(firstBart);
+                deinitBart(firstBart); 
             }
         }
         else if (bartphase == 1)
@@ -233,7 +237,7 @@ void drawBottom(C3D_RenderTarget *target)
             {
                 touchX = touch.px;
             }
-            player->SetTransform(b2Vec2(PixelsToMeters(touchX), PixelsToMeters(50)), 0);
+            player->SetTransform(b2Vec2(PixelsToMeters(touchX), PixelsToMeters(20)), 0);
 
             if (kDown & KEY_A)
             {
@@ -241,6 +245,7 @@ void drawBottom(C3D_RenderTarget *target)
                 bartphase = 2;
             }
         }
+        
     }
 }
 
@@ -300,7 +305,7 @@ int main(int argc, char *argv[])
         drawTransition();
         drawBottom(bottom);
         drawTransition();
-        counting();
+      //  counting();
         C3D_FrameEnd(0);
     }
 

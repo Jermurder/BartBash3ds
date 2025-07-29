@@ -165,7 +165,8 @@ bart.o: C:/Users/jermu/documents/3ds/bartbash/source/bart.cpp \
  C:/Users/jermu/documents/3ds/bartbash/source/ui_button.h \
  C:/Users/jermu/documents/3ds/bartbash/source/scene_manager.h \
  C:/Users/jermu/documents/3ds/bartbash/source/audio_manager.h \
- C:/Users/jermu/documents/3ds/bartbash/source/physics_manager.h
+ C:/Users/jermu/documents/3ds/bartbash/source/physics_manager.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/animatePaint.h
 C:/Users/jermu/documents/3ds/bartbash/source/collision_listener.h:
 C:/devkitPro/portlibs/3ds/include/box2d/box2d.h:
 C:/devkitPro/portlibs/3ds/include/box2d/b2_settings.h:
@@ -333,3 +334,4 @@ C:/Users/jermu/documents/3ds/bartbash/source/ui_button.h:
 C:/Users/jermu/documents/3ds/bartbash/source/scene_manager.h:
 C:/Users/jermu/documents/3ds/bartbash/source/audio_manager.h:
 C:/Users/jermu/documents/3ds/bartbash/source/physics_manager.h:
+C:/Users/jermu/documents/3ds/bartbash/source/animatePaint.h:

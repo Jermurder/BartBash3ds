@@ -165,7 +165,8 @@ main.o: C:/Users/jermu/documents/3ds/bartbash/source/main.cpp \
  C:/Users/jermu/documents/3ds/bartbash/source/audio_manager.h \
  C:/Users/jermu/documents/3ds/bartbash/source/physics_manager.h \
  C:/Users/jermu/documents/3ds/bartbash/source/collision_listener.h \
- C:/Users/jermu/documents/3ds/bartbash/source/bart.h
+ C:/Users/jermu/documents/3ds/bartbash/source/bart.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/animatePaint.h
 C:/Users/jermu/documents/3ds/bartbash/source/include.h:
 C:/devkitPro/libctru/include/citro2d.h:
 C:/devkitPro/libctru/include/citro3d.h:
@@ -333,3 +334,4 @@ C:/Users/jermu/documents/3ds/bartbash/source/audio_manager.h:
 C:/Users/jermu/documents/3ds/bartbash/source/physics_manager.h:
 C:/Users/jermu/documents/3ds/bartbash/source/collision_listener.h:
 C:/Users/jermu/documents/3ds/bartbash/source/bart.h:
+C:/Users/jermu/documents/3ds/bartbash/source/animatePaint.h:
