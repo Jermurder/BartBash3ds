@@ -5,6 +5,7 @@
 #include <box2d/box2d.h>
 #include <random> // For std::random_device, std::mt19937, std::discrete_distribution
 #include <array>  // For std::array
+
 struct SpriteManager;
 
 enum class BartType
@@ -64,3 +65,5 @@ void addMultiplier(int *multiplier, Bart bart);
 void resetMultiplier(int *multiplier);
 void updateBartFading(Bart* bart, SpriteManager* spriteManager, float deltaTime);
 void counting();
+void resetBarts();
+void reInitBarts();

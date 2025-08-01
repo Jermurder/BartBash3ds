@@ -2,8 +2,10 @@
 #include "bart.h"
 #include "sprite_manager.h"
 
-int roundtimer = 0;
-int maxtime = 3;
+extern SpriteManager spriteManager;
+
+int roundtimer = 200;
+int maxtime = 200 ;
 int basescore = 105;
 
 Bart barts[40];
@@ -128,7 +130,7 @@ BartType getRandomBartType()
 void spawnBarts()
 {
     const std::size_t count = std::size(barts);
-    const float minDistance = 25.0f; // Minimum distance between Barts (pixels)
+    const float minDistance = 25.0f;
     const int maxAttemptsPerBart = 100;
 
     for (int i = 0; i < count; i++)
@@ -345,6 +347,8 @@ void counting()
             totalScore += score;
             roundtimer = maxtime;  // Reset timer for next round
             startcounting = false; // Stop counting until next round
+            resetBarts();
+            
         }
     }
     else
@@ -382,4 +386,23 @@ void updateBartFading(Bart* bart, SpriteManager* spriteManager, float deltaTime)
             bart->fadeTimer = 0.0f;
         }
     }
+}
+
+void resetBarts() {
+    for (int i = 0; i < 40; ++i) {
+        if (barts[i].initialized) {
+            deinitBart(&barts[i]);
+        }
+    }
+    spawnBarts(); // Generates new positions
+    reInitBarts(); // Reinitialize barts with new positions
+}
+
+void reInitBarts() { 
+    for (int i = 0; i < 40; ++i) {
+        if (!barts[i].initialized) {
+            initBarts(&spriteManager);
+        }
+    }
+
 }

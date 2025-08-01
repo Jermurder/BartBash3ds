@@ -8,7 +8,7 @@ constexpr int SCREEN_HEIGHT = 240;
 #define SOC_BUFFERSIZE 0x100000
 static u32 *SOC_buffer = nullptr;
 
-static SpriteManager spriteManager;
+SpriteManager spriteManager;
 
 int gamestate = 0; // 0 = menu, 1 = game
 int selectedBarts;
@@ -247,6 +247,10 @@ void drawBottom(C3D_RenderTarget *target)
         }
         
     }
+    else if (scenemanager.currentScene == 4)
+    {
+        
+    }
 }
 
 void updateBarts(float deltaTime, SpriteManager* spriteManager) {
@@ -282,7 +286,6 @@ int main(int argc, char *argv[])
     audioManagerInit();
     audioManagerPlay("romfs:/sounds/bort.opus");
 
-    srand(static_cast<unsigned int>(time(NULL)));
     PhysicsManager_Init();
     spawnBarts();
     initBarts(&spriteManager);
@@ -290,6 +293,7 @@ int main(int argc, char *argv[])
     while (aptMainLoop())
     {
         DeltaTime_Update();
+        srand(static_cast<unsigned int>(time(NULL)));
         float dt = DeltaTime_Get();
         hidScanInput();
         kDown = hidKeysDown();
@@ -305,7 +309,7 @@ int main(int argc, char *argv[])
         drawTransition();
         drawBottom(bottom);
         drawTransition();
-      //  counting();
+        counting();
         C3D_FrameEnd(0);
     }
 

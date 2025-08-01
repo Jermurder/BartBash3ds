@@ -24,8 +24,8 @@ struct SceneManager
 	bool isTransitioning;
 	TransitionPhase transitionPhase;
 	int nextScene;
-	Scene scenes[2];
-	int allocatedscenes[2];
+	Scene scenes[6];
+	int allocatedscenes[6];
 
 	// C++ constructor: ONLY if compiled as C++
 	SceneManager()
@@ -34,8 +34,8 @@ struct SceneManager
 		  isTransitioning(false),
 		  transitionPhase(TRANSITION_NONE),
 		  nextScene(0),
-		  scenes{{"MainMenu"}, {"Game"}},
-		  allocatedscenes{1, 1} {}
+		  scenes{{"MainMenu"}, {"Game"}, {"HowToPlay"}, {"Credits"}, {"EndRound"}, {"Shop"}},
+		  allocatedscenes{1, 1, 1, 1, 1, 1} {}
 };
 
 void AddScene(SceneManager *scenemanager, const char *sceneName);
