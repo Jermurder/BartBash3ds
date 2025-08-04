@@ -2,7 +2,7 @@
 #include <3ds.h>     // For hidKeysDown, hidKeysUp and touchPosition
 #include <citro2d.h> // For C2D_Sprite
 
-void UIButton_Init(UIButton *btn, C2D_SpriteSheet sheet, int spriteNormal, float x, float y, float width, float height)
+void UIButton_Init(UIButton *btn, C2D_SpriteSheet sheet, int spriteNormal, float x, float y, float width, float height, u32 color, bool outline)
 {
     btn->sheet = sheet;
     btn->spriteNormal = spriteNormal;
@@ -18,6 +18,8 @@ void UIButton_Init(UIButton *btn, C2D_SpriteSheet sheet, int spriteNormal, float
     btn->hasPressed = false;
     btn->label = NULL;
     btn->spriteHover = 0;
+    btn->color = color;
+    btn->outline = outline;
 }
 
 void UIButton_SetHoverSprite(UIButton *btn, int spriteHover)
@@ -58,6 +60,19 @@ void UIButton_Update(UIButton *btn, touchPosition touch)
 
 void UIButton_Draw(UIButton *btn)
 {
+    if (btn->spriteNormal == -1)
+    {
+        if (btn->toggled && btn->outline)
+        {
+            C2D_DrawRectSolid(btn->x - 2, btn->y -2, 0.0f, btn->width + 4, btn->height + 4, C2D_Color32(255, 255, 255, 255));
+        }
+        C2D_DrawRectSolid(btn->x, btn->y, 0, btn->width, btn->height, btn->color);
+        if (btn->label)
+        {
+            btn->label->Draw();
+        }
+        return;
+    }
     int spriteIndex = btn->spriteNormal;
 
     if (btn->pressed && btn->hasPressed)

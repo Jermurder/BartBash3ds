@@ -5,6 +5,7 @@
 #include <box2d/box2d.h>
 #include <random> // For std::random_device, std::mt19937, std::discrete_distribution
 #include <array>  // For std::array
+#include "sprite_manager.h"
 
 struct SpriteManager;
 
@@ -44,6 +45,9 @@ struct Bart
     FadeState fadeState = FadeState::None;
     float fadeTimer = 0.0f;
     bool pendingReset = false;
+    bool dissapearing = false;
+    float tintAmount;    // Ranges from 0.0 (no tint) to 1.0 (full dark)
+    float tintTarget;    // Desired target (0.0 when touched, 0.5 or so when idle)
 };
 
 extern Bart barts[40];
@@ -58,12 +62,13 @@ void initBarts(SpriteManager *spriteManager);
 void addBart(float x, float y, BartType type);
 void spawnBarts();
 void updateBartsAfterPhysics();
-void findBart(touchPosition touch, int *selectedBarts, SpriteManager *spriteManager);
+void findBart(touchPosition touch, int *selectedBarts, SpriteManager *spriteManager, bool itemsButtonToggled);
 void deinitBart(Bart *bart);
 void reinitBart(Bart *bart, SpriteManager *spriteManager);
 void addMultiplier(int *multiplier, Bart bart);
 void resetMultiplier(int *multiplier);
 void updateBartFading(Bart* bart, SpriteManager* spriteManager, float deltaTime);
-void counting();
+void counting(int *multiplier, b2Body *player);
 void resetBarts();
 void reInitBarts();
+void paintBart(touchPosition touch, SpriteManager *spriteManager, bool gold, int *copperPaintCount, int *goldPaintCount);

@@ -25,6 +25,12 @@ void CollisionListener::BeginContact(b2Contact *contact)
             {
                 roundtimer = maxtime;
             }
+                        
+            if (barts[i].type == BartType::GEM_BART && barts[i].touched == false)
+            {
+                gems++;
+                barts[i].dissapearing = true; // Mark for dissapear
+            }
             barts[i].touched = true;
             startcounting = true;
         }

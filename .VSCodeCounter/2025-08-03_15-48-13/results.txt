@@ -1,0 +1,62 @@
+Date : 2025-08-03 15:48:13
+Directory : c:\Users\jermu\Documents\3DS\BartBash
+Total : 28 files,  1628 codes, 133 comments, 326 blanks, all 2087 lines
+
+Languages
++--------------+------------+------------+------------+------------+------------+
+| language     | files      | code       | comment    | blank      | total      |
++--------------+------------+------------+------------+------------+------------+
+| C++          |         18 |      1,387 |         51 |        247 |      1,685 |
+| Makefile     |          1 |        118 |         69 |         46 |        233 |
+| C            |          5 |         98 |          5 |         22 |        125 |
+| Visual Basic |          1 |         22 |          8 |         11 |         41 |
+| Batch        |          3 |          3 |          0 |          0 |          3 |
++--------------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                   |         28 |      1,628 |        133 |        326 |      2,087 |
+| . (Files)                                                           |          1 |        118 |         69 |         46 |        233 |
+| gfx                                                                 |          4 |         25 |          8 |         11 |         44 |
+| gfx\Barts                                                           |          2 |         23 |          8 |         11 |         42 |
+| gfx\Logo                                                            |          1 |          1 |          0 |          0 |          1 |
+| gfx\UI                                                              |          1 |          1 |          0 |          0 |          1 |
+| source                                                              |         23 |      1,485 |         56 |        269 |      1,810 |
++---------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------+--------------+------------+------------+------------+------------+
+| filename                                                            | language     | code       | comment    | blank      | total      |
++---------------------------------------------------------------------+--------------+------------+------------+------------+------------+
+| c:\Users\jermu\Documents\3DS\BartBash\Makefile                      | Makefile     |        118 |         69 |         46 |        233 |
+| c:\Users\jermu\Documents\3DS\BartBash\gfx\Barts\addsprites.vbs      | Visual Basic |         22 |          8 |         11 |         41 |
+| c:\Users\jermu\Documents\3DS\BartBash\gfx\Barts\makesprites.bat     | Batch        |          1 |          0 |          0 |          1 |
+| c:\Users\jermu\Documents\3DS\BartBash\gfx\Logo\makesprites.bat      | Batch        |          1 |          0 |          0 |          1 |
+| c:\Users\jermu\Documents\3DS\BartBash\gfx\UI\makesprites.bat        | Batch        |          1 |          0 |          0 |          1 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\animatePaint.cpp       | C++          |         40 |          6 |         13 |         59 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\animatePaint.h         | C++          |          7 |          0 |          2 |          9 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\audio_manager.cpp      | C++          |        160 |          2 |         25 |        187 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\audio_manager.h        | C++          |          5 |          0 |          1 |          6 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\bart.cpp               | C++          |        389 |         10 |         51 |        450 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\bart.h                 | C++          |         63 |          0 |          8 |         71 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\collision_listener.cpp | C++          |         34 |          0 |          4 |         38 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\collision_listener.h   | C++          |          8 |          0 |          2 |         10 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\delta_time.cpp         | C++          |         17 |          1 |          5 |         23 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\delta_time.h           | C            |          5 |          1 |          2 |          8 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\globals.h              | C++          |         11 |          1 |          3 |         15 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\include.h              | C            |         23 |          2 |          3 |         28 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\main.cpp               | C++          |        332 |          5 |         53 |        390 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\physics_manager.cpp    | C++          |         97 |          9 |         32 |        138 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\physics_manager.h      | C++          |         12 |          0 |          5 |         17 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\scene_manager.cpp      | C++          |         46 |         10 |          8 |         64 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\scene_manager.h        | C            |         34 |          2 |          7 |         43 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\sprite_manager.cpp     | C++          |         36 |          0 |          6 |         42 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\sprite_manager.h       | C            |         17 |          0 |          5 |         22 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\ui_button.cpp          | C++          |         70 |          2 |         12 |         84 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\ui_button.h            | C            |         19 |          0 |          5 |         24 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\ui_text.cpp            | C++          |         42 |          1 |          9 |         52 |
+| c:\Users\jermu\Documents\3DS\BartBash\source\ui_text.h              | C++          |         18 |          4 |          8 |         30 |
+| Total                                                               |              |      1,628 |        133 |        326 |      2,087 |
++---------------------------------------------------------------------+--------------+------------+------------+------------+------------+

@@ -11,8 +11,6 @@ extern SpriteManager spriteManager;
 
 void initPaint()
 {
-    SpriteManager_Load(&spriteManager, "Copper", "romfs:/gfx/copperpaint.t3x");
-    SpriteManager_Load(&spriteManager, "Gold", "romfs:/gfx/goldpaint.t3x");
 
     C2D_SpriteSheet copperSheet = SpriteManager_GetSheet(&spriteManager, "Copper");
     C2D_SpriteSheet goldSheet   = SpriteManager_GetSheet(&spriteManager, "Gold");

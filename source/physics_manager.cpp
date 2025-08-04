@@ -85,9 +85,9 @@ void PhysicsManager_SpawnPlayer(float screenX, float screenY)
     bottomCircle.m_p.Set(0, halfHeight);
 
     b2FixtureDef fix;
-    fix.density = 1.5f;
+    fix.density = 0.75f;
     fix.friction = 0.1f;
-    fix.restitution = 0.6f;
+    fix.restitution = 0.7f;
 
     // playerBody->SetLinearDamping(1.0f); // Less friction than barts
 
@@ -101,7 +101,7 @@ void PhysicsManager_SpawnPlayer(float screenX, float screenY)
     fix.shape = &bottomCircle;
     playerBody->CreateFixture(&fix);
 
-    playerBody->SetGravityScale(0.4f); // Falls at half normal speed
+    playerBody->SetGravityScale(0.8f); // Falls at half normal speed
 }
 
 b2Body *PhysicsManager_GetPlayer()
@@ -133,4 +133,24 @@ void PhysicsManager_TogglePlayerFrozen()
         playerBody->SetGravityScale(1.0f);
         playerBody->SetAwake(true);
     }
+}
+
+
+void applyRandomUpwardForce(b2Body* body)
+{
+    // Random engine setup
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+
+    // Horizontal force range, e.g., -5 to +5
+    std::uniform_real_distribution<float> distX(-0.05f, 0.05f);
+
+    // Fixed upward force
+    float upwardForce = -0.05f;
+
+    // Create force vector
+    b2Vec2 force(distX(gen), upwardForce);
+
+    // Apply the force to the center of mass
+    body->ApplyLinearImpulseToCenter(force, true);
 }

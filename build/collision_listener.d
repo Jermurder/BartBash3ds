@@ -150,7 +150,24 @@ collision_listener.o: \
  C:/devkitPro/libctru/include/c2d/sprite.h \
  C:/devkitPro/libctru/include/c2d/text.h \
  C:/devkitPro/libctru/include/c2d/font.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/physics_manager.h
+ C:/Users/jermu/Documents/3ds/bartbash/source/sprite_manager.h \
+ C:/Users/jermu/Documents/3ds/bartbash/source/include.h \
+ C:/devkitPro/portlibs/3ds/include/opus/opus.h \
+ C:/devkitPro/portlibs/3ds/include/opus/opus_types.h \
+ C:/devkitPro/portlibs/3ds/include/opus/opus_defines.h \
+ C:/devkitPro/portlibs/3ds/include/opus/opusfile.h \
+ C:/devkitPro/portlibs/3ds/include/ogg/ogg.h \
+ C:/devkitPro/portlibs/3ds/include/ogg/os_types.h \
+ C:/devkitPro/portlibs/3ds/include/ogg/config_types.h \
+ C:/devkitPro/portlibs/3ds/include/opus/opus_multistream.h \
+ C:/devkitPro/portlibs/3ds/include/opus/opus.h \
+ C:/Users/jermu/Documents/3ds/bartbash/source/delta_time.h \
+ C:/Users/jermu/Documents/3ds/bartbash/source/ui_text.h \
+ C:/Users/jermu/Documents/3ds/bartbash/source/ui_button.h \
+ C:/Users/jermu/Documents/3ds/bartbash/source/scene_manager.h \
+ C:/Users/jermu/Documents/3ds/bartbash/source/audio_manager.h \
+ C:/Users/jermu/Documents/3ds/bartbash/source/physics_manager.h \
+ C:/Users/jermu/Documents/3ds/bartbash/source/animatePaint.h
 C:/Users/jermu/Documents/3ds/bartbash/source/collision_listener.h:
 C:/devkitPro/portlibs/3ds/include/box2d/box2d.h:
 C:/devkitPro/portlibs/3ds/include/box2d/b2_settings.h:
@@ -301,4 +318,21 @@ C:/devkitPro/libctru/include/c2d/spritesheet.h:
 C:/devkitPro/libctru/include/c2d/sprite.h:
 C:/devkitPro/libctru/include/c2d/text.h:
 C:/devkitPro/libctru/include/c2d/font.h:
+C:/Users/jermu/Documents/3ds/bartbash/source/sprite_manager.h:
+C:/Users/jermu/Documents/3ds/bartbash/source/include.h:
+C:/devkitPro/portlibs/3ds/include/opus/opus.h:
+C:/devkitPro/portlibs/3ds/include/opus/opus_types.h:
+C:/devkitPro/portlibs/3ds/include/opus/opus_defines.h:
+C:/devkitPro/portlibs/3ds/include/opus/opusfile.h:
+C:/devkitPro/portlibs/3ds/include/ogg/ogg.h:
+C:/devkitPro/portlibs/3ds/include/ogg/os_types.h:
+C:/devkitPro/portlibs/3ds/include/ogg/config_types.h:
+C:/devkitPro/portlibs/3ds/include/opus/opus_multistream.h:
+C:/devkitPro/portlibs/3ds/include/opus/opus.h:
+C:/Users/jermu/Documents/3ds/bartbash/source/delta_time.h:
+C:/Users/jermu/Documents/3ds/bartbash/source/ui_text.h:
+C:/Users/jermu/Documents/3ds/bartbash/source/ui_button.h:
+C:/Users/jermu/Documents/3ds/bartbash/source/scene_manager.h:
+C:/Users/jermu/Documents/3ds/bartbash/source/audio_manager.h:
 C:/Users/jermu/Documents/3ds/bartbash/source/physics_manager.h:
+C:/Users/jermu/Documents/3ds/bartbash/source/animatePaint.h:

@@ -9,5 +9,7 @@ extern int bartphase; // Select, Drop, Dropped
 extern int multiplier;
 extern int score;
 extern int totalScore;
+extern int* currentRoundPtr;
+extern int gems;
 
 extern bool startcounting;

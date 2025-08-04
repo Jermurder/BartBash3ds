@@ -1,6 +1,7 @@
 #pragma once
 #include <box2d/box2d.h>
 #include "collision_listener.h"
+#include <random>
 
 extern bool isFrozen;
 
@@ -15,3 +16,4 @@ b2Body *PhysicsManager_GetPlayer();
 b2World *PhysicsManager_GetWorld();
 
 void PhysicsManager_TogglePlayerFrozen();
+void applyRandomUpwardForce(b2Body* body);

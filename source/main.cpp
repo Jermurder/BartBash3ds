@@ -17,18 +17,34 @@ int bartphase = 0; // Select, Drop, Dropped
 int multiplier = 1;
 int score;
 int totalScore;
+int currentRound;
+int *currentRoundPtr = &currentRound;
+int gems;
+
+b2Body *player;
 
 UIText scoreText;
 UIText selectedText;
-UIButton startButton, howtoplayButton;
+UIText howtoplayText;
+UIText endScore;
+UIText endGems;
+UIButton startButton, howtoplayButton, itemsButton, goldPaint, copperPaint;
 C2D_Sprite mainmenuSprites[3];
 
 touchPosition touch;
 u32 kDown;
-u16 touchX;
+u16 touchX = 200;
 u32 kHeld;
 
+int copperPaintCount = 1;
+int goldPaintCount = 1;
+
+UIText copperamount;
+UIText goldamount;
+
 UIText Multiplier;
+
+UIButton continuebutton, quitbutton, storebutton;
 
 bool redrawTop = true;
 bool redrawBottom = true;
@@ -59,6 +75,21 @@ void initSOC()
     link3dsStdio();
 }
 
+void continuegame()
+{
+    changeScene(&scenemanager, 1);
+}
+
+void quitgame()
+{
+    changeScene(&scenemanager, 0);
+}
+
+void store()
+{
+    changeScene(&scenemanager, 5);
+}
+
 void texts()
 {
     font = C2D_FontLoad("romfs:/fonts/Helvetica.bcfnt");
@@ -77,6 +108,22 @@ void texts()
     Multiplier.Init("Multiplier: " + std::to_string(multiplier) + "x", font, 157, 142, 0.5f, C2D_Color32(255, 255, 255, 255));
     scoreText.Init("Score: " + std::to_string(score), font, 30, 142, 0.5f, C2D_Color32(255, 255, 255, 255));
     selectedText.Init("Selected: " + std::to_string(selectedBarts) + "/6", font, 295, 142, 0.5f, C2D_Color32(255, 255, 255, 255));
+
+    howtoplayText.Init("A to exit", font, 60, 110, 2.0f, C2D_Color32(255, 255, 255, 255));
+    endScore.Init("Score: \n" + std::to_string(totalScore), font, 100, 130, 1.0f, C2D_Color32(0, 0, 255, 255));
+    endGems.Init("Gems: \n" + std::to_string(gems), font, 210, 130, 1.0f, C2D_Color32(0, 0, 255, 255));
+    itemsButton.label = new UIText;
+    itemsButton.label->Init("Items", font, itemsButton.x + 5, itemsButton.y + 15, 0.5f, C2D_Color32(255, 255, 255, 255));
+    copperamount.Init("(" + std::to_string(copperPaintCount) + ")", font, 40, 125, 0.5f, C2D_Color32(255, 255, 255, 255));
+    goldamount.Init("(" + std::to_string(goldPaintCount) + ")", font, 110, 125, 0.5f, C2D_Color32(255, 255, 255, 255));
+
+    continuebutton.label = new UIText;
+    continuebutton.label->Init("Continue", font, continuebutton.x + 50, continuebutton.y + 50, 0.5f, C2D_Color32(255, 255, 255, 255));
+    quitbutton.label = new UIText;
+    quitbutton.label->Init("Quit", font, quitbutton.x + 50, quitbutton.y + 50, 0.5f, C2D_Color32(255, 255, 255, 255));
+    storebutton.label = new UIText;
+    storebutton.label->Init("Store", font, storebutton.x + 50, storebutton.y + 50, 0.5f, C2D_Color32(255, 255, 255, 255));
+
 }
 
 void drawTransition()
@@ -122,15 +169,62 @@ void onStartButtonClick()
     redrawBottom = true;
 }
 
+void onHowToPlayButtonClick()
+{
+    changeScene(&scenemanager, 2);
+}
+
+void onItemsButtonClick()
+{
+    itemsButton.toggled = !itemsButton.toggled;
+}
+
+void onGoldPaintButtonClick()
+{
+    goldPaint.toggled = !goldPaint.toggled;
+    if (copperPaint.toggled)
+    {
+        copperPaint.toggled = false; // Disable copper paint if gold is selected
+    }
+}
+
+void onCopperPaintButtonClick()
+{
+    copperPaint.toggled = !copperPaint.toggled;
+    if (goldPaint.toggled)
+    {
+        goldPaint.toggled = false; // Disable gold paint if copper is selected
+    }
+}
+
 void loadUI()
 {
-    UIButton_Init(&startButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 30, 220, 80);
+    UIButton_Init(&startButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 30, 220, 80, NULL, false);
     UIButton_SetHoverSprite(&startButton, 1);
     UIButton_SetPressedSprite(&startButton, 0);
 
-    UIButton_Init(&howtoplayButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 130, 220, 80);
+    UIButton_Init(&howtoplayButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 130, 220, 80, NULL, false);
     UIButton_SetHoverSprite(&howtoplayButton, 1);
     UIButton_SetPressedSprite(&howtoplayButton, 0);
+
+    UIButton_Init(&itemsButton, NULL, -1, 10, 5, 50, 30, C2D_Color32(255, 0, 0, 255), true);
+    UIButton_Init(&copperPaint, NULL, -1, 20, 50, 60, 80, C2D_Color32(0, 0, 0, 200), true);
+
+    UIButton_Init(&goldPaint, NULL, -1, 85, 50, 60, 80, C2D_Color32(0, 0, 0, 200), true);
+
+    UIButton_Init(&continuebutton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 10, 220, 80, NULL, false);
+    UIButton_SetHoverSprite(&continuebutton, 1);
+    UIButton_SetPressedSprite(&continuebutton, 0);
+
+    UIButton_Init(&storebutton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 100, 220, 80, NULL, false);
+    UIButton_SetHoverSprite(&storebutton, 1);
+    UIButton_SetPressedSprite(&storebutton, 0);
+
+    UIButton_Init(&quitbutton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 190, 220, 80, NULL, false);
+    UIButton_SetHoverSprite(&quitbutton, 1);
+    UIButton_SetPressedSprite(&quitbutton, 0);
+
+
 }
 
 void loadSprites()
@@ -157,12 +251,13 @@ void drawTop(C3D_RenderTarget *target)
     }
     else if (scenemanager.currentScene == 1)
     {
+        C2D_DrawSprite(&mainmenuSprites[2]);
         C2D_Sprite display;
         C2D_SpriteFromSheet(&display, SpriteManager_GetSheet(&spriteManager, "UI4"), 0);
 
         C2D_SpriteSetPos(&display, 13, 100);
         C2D_DrawSprite(&display);
-        scoreText.SetText("Score: " + std::to_string(score));
+        scoreText.SetText("Score: " + std::to_string(totalScore));
         scoreText.Draw();
 
         C2D_SpriteSetPos(&display, 146, 100);
@@ -175,6 +270,32 @@ void drawTop(C3D_RenderTarget *target)
         selectedText.SetText("Selected: " + std::to_string(selectedBarts) + "/6");
         selectedText.Draw();
     }
+    else if (scenemanager.currentScene == 2)
+    {
+        C2D_Sprite background;
+        C2D_SpriteFromSheet(&background, SpriteManager_GetSheet(&spriteManager, "UI3"), 2);
+        C2D_SpriteSetPos(&background, 28, 0);
+        C2D_DrawSprite(&background);
+        if (kDown & KEY_A)
+        {
+            changeScene(&scenemanager, 0);
+        }
+    }
+    else if (scenemanager.currentScene == 4)
+    {
+        C2D_Sprite background;
+        C2D_SpriteFromSheet(&background, SpriteManager_GetSheet(&spriteManager, "UI1"), 0);
+        C2D_SpriteSetPos(&background, 0, 0);
+        C2D_DrawSprite(&background);
+        C2D_SpriteFromSheet(&background, SpriteManager_GetSheet(&spriteManager, "UI2"), 3);
+        C2D_SpriteSetPos(&background, 84, 37);
+        C2D_DrawSprite(&background);
+        endScore.SetText("Score: \n" + std::to_string(totalScore));
+        endScore.Draw();
+        endGems.SetText("Gems: \n" + std::to_string(gems));
+        endGems.Draw();
+    }
+
 }
 
 void drawBottom(C3D_RenderTarget *target)
@@ -198,8 +319,7 @@ void drawBottom(C3D_RenderTarget *target)
         C2D_DrawSprite(&background);
         drawBarts();
 
-        
-        b2Body *player = PhysicsManager_GetPlayer();
+        player = PhysicsManager_GetPlayer();
         if (player)
         {
             b2Vec2 pos = player->GetPosition();
@@ -213,21 +333,53 @@ void drawBottom(C3D_RenderTarget *target)
             C2D_SpriteSetCenter(&playerSprite, 0.5f, 0.5f);
             C2D_DrawSprite(&playerSprite);
         }
-        
+        UIButton_Update(&itemsButton, touch);
+        UIButton_Draw(&itemsButton);
+        if (itemsButton.toggled)
+        {
+            C2D_Sprite copperSprite;
+            C2D_SpriteFromSheet(&copperSprite, SpriteManager_GetSheet(&spriteManager, "Copper"), 0);
+            C2D_SpriteSetPos(&copperSprite, 10, 45);
+            UIButton_Update(&copperPaint, touch);
+            UIButton_Draw(&copperPaint);
+            C2D_DrawSprite(&copperSprite);
+            C2D_Sprite goldSprite;
+            C2D_SpriteFromSheet(&goldSprite, SpriteManager_GetSheet(&spriteManager, "Gold"), 0);
+            C2D_SpriteSetPos(&goldSprite, 75, 45);
+            UIButton_Update(&goldPaint, touch);
+            UIButton_Draw(&goldPaint);
+            C2D_DrawSprite(&goldSprite);
+            copperamount.SetText("(" + std::to_string(copperPaintCount) + ")");
+            copperamount.Draw();
+            goldamount.SetText("(" + std::to_string(goldPaintCount) + ")");
+            goldamount.Draw();
+        }
         if (bartphase == 0)
         {
             if (player)
-                player->SetType(b2_staticBody);
+                player->SetTransform(b2Vec2(PixelsToMeters(190), PixelsToMeters(20)), 0);
+            player->SetType(b2_staticBody);
             if (kDown & KEY_TOUCH)
             {
-               findBart(touch, &selectedBarts, &spriteManager);
+                findBart(touch, &selectedBarts, &spriteManager, itemsButton.toggled);
+            }
+
+            if (itemsButton.toggled)
+            {
+                if (copperPaint.toggled && copperPaintCount > 0)
+                {
+                    paintBart(touch, &spriteManager, false, &copperPaintCount, &goldPaintCount);
+                }
+                else if (goldPaint.toggled && goldPaintCount > 0)
+                {
+                    paintBart(touch, &spriteManager, true, &copperPaintCount, &goldPaintCount);
+                }
             }
             if (kDown & KEY_A && selectedBarts > 0)
             {
                 bartphase = 1;
                 PhysicsManager_SpawnPlayer(190, 20);
-
-                deinitBart(firstBart); 
+                deinitBart(firstBart);
             }
         }
         else if (bartphase == 1)
@@ -243,19 +395,32 @@ void drawBottom(C3D_RenderTarget *target)
             {
                 player->SetType(b2_dynamicBody);
                 bartphase = 2;
+                applyRandomUpwardForce(player);
             }
         }
-        
+    }
+    else if (scenemanager.currentScene == 2)
+    {
+        C2D_DrawSprite(&mainmenuSprites[2]);
+        howtoplayText.Draw();
     }
     else if (scenemanager.currentScene == 4)
     {
-        
+        UIButton_Update(&continuebutton, touch);
+        UIButton_Draw(&continuebutton);
+        UIButton_Update(&quitbutton, touch);
+        UIButton_Draw(&quitbutton);
+        UIButton_Update(&storebutton, touch);
+        UIButton_Draw(&storebutton);
     }
 }
 
-void updateBarts(float deltaTime, SpriteManager* spriteManager) {
-    for (int i = 0; i < 40; ++i) {
-        if (!barts[i].initialized) continue;
+void updateBarts(float deltaTime, SpriteManager *spriteManager)
+{
+    for (int i = 0; i < 40; ++i)
+    {
+        if (!barts[i].initialized)
+            continue;
         updateBartFading(&barts[i], spriteManager, deltaTime);
     }
 }
@@ -273,6 +438,8 @@ int main(int argc, char *argv[])
     auto *bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 
     SpriteManager_Init(&spriteManager);
+    SpriteManager_Load(&spriteManager, "Copper", "romfs:/gfx/copperpaint.t3x");
+    SpriteManager_Load(&spriteManager, "Gold", "romfs:/gfx/goldpaint.t3x");
     SpriteManager_Load(&spriteManager, "UI1", "romfs:/gfx/UI1.t3x");
     SpriteManager_Load(&spriteManager, "UI2", "romfs:/gfx/UI2.t3x");
     SpriteManager_Load(&spriteManager, "UI3", "romfs:/gfx/backgrounds.t3x");
@@ -289,11 +456,10 @@ int main(int argc, char *argv[])
     PhysicsManager_Init();
     spawnBarts();
     initBarts(&spriteManager);
-
+    srand(static_cast<unsigned int>(time(NULL)));
     while (aptMainLoop())
     {
         DeltaTime_Update();
-        srand(static_cast<unsigned int>(time(NULL)));
         float dt = DeltaTime_Get();
         hidScanInput();
         kDown = hidKeysDown();
@@ -304,14 +470,19 @@ int main(int argc, char *argv[])
         PhysicsManager_Update(1.0f / 60.0f);
         updateBartsAfterPhysics();
         startButton.onClick = onStartButtonClick;
+        howtoplayButton.onClick = onHowToPlayButtonClick;
+        itemsButton.onClick = onItemsButtonClick;
+        copperPaint.onClick = onCopperPaintButtonClick;
+        goldPaint.onClick = onGoldPaintButtonClick;
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
         drawTop(top);
         drawTransition();
         drawBottom(bottom);
         drawTransition();
-        counting();
+        counting(&multiplier, player);
         C3D_FrameEnd(0);
     }
+    gameexit:
 
     SpriteManager_Free(&spriteManager);
 

@@ -9,6 +9,9 @@ typedef struct
     C2D_SpriteSheet sheet;
     int spriteNormal, spriteHover, spritePressed;
     bool hasHover, hasPressed;
+    u32 color;
+    bool toggled;
+    bool outline;
 
     bool hovered, pressed;
     void (*onClick)(void);
@@ -16,8 +19,9 @@ typedef struct
     UIText *label; // optional text label
 } UIButton;
 
-void UIButton_Init(UIButton *btn, C2D_SpriteSheet sheet, int spriteNormal, float x, float y, float width, float height);
+void UIButton_Init(UIButton *btn, C2D_SpriteSheet sheet, int spriteNormal, float x, float y, float width, float height, u32 color, bool outline);
 void UIButton_SetHoverSprite(UIButton *btn, int spriteHover);
 void UIButton_SetPressedSprite(UIButton *btn, int spritePressed);
 void UIButton_Update(UIButton *btn, touchPosition touch);
 void UIButton_Draw(UIButton *btn);
+

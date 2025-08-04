@@ -24,7 +24,7 @@ void AddScene(SceneManager *scenemanager, const char *sceneName)
 // Initialize transition to change to sceneIndex
 void changeScene(SceneManager *scenemanager, int sceneIndex)
 {
-    if (sceneIndex < 0 || sceneIndex >= 2 || scenemanager->allocatedscenes[sceneIndex] == 0)
+    if (sceneIndex < 0 || sceneIndex >= 6 || scenemanager->allocatedscenes[sceneIndex] == 0)
     {
         return; // Invalid scene index or unallocated
     }
