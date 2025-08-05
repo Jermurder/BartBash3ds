@@ -13,3 +13,4 @@ extern int* currentRoundPtr;
 extern int gems;
 
 extern bool startcounting;
+extern bool *playerEnabledPtr;

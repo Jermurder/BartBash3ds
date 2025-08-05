@@ -4,7 +4,7 @@
 #define PIXELS_PER_METER 60.0f
 #define METERS_PER_PIXEL (1.0f / PIXELS_PER_METER)
 
-static b2World *world = nullptr;
+b2World *world = nullptr;
 static b2Body *playerBody = nullptr;
 static CollisionListener collisionListener;
 

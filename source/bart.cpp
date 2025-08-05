@@ -2,7 +2,6 @@
 #include "bart.h"
 #include "globals.h"
 #include <random>
-
 extern SpriteManager spriteManager;
 
 int roundtimer = 200;
@@ -78,7 +77,7 @@ void initBarts(SpriteManager *spriteManager)
             barts[i].body->CreateFixture(&fix);
 
             barts[i].body->SetGravityScale(0.0f);   // Prevent falling into a pile
-            barts[i].body->SetLinearDamping(0.2f);  // Reduce movement after spawn
+            barts[i].body->SetLinearDamping(1.0f);  // Reduce movement after spawn
             barts[i].body->SetAngularDamping(2.0f); // Strongly damp rotation
 
             int spriteIndex = static_cast<int>(barts[i].type);
@@ -287,7 +286,7 @@ void paintBart(touchPosition touch, SpriteManager *spriteManager, bool gold, int
                 {
                     barts[i].type = BartType::FAKEGOLD_BART;
                     barts[i].sprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(spriteManager, "barts"), static_cast<int>(barts[i].type));
-                (*goldPaintCount--);
+                (*goldPaintCount)--;
                 }
             }
         }
@@ -327,7 +326,7 @@ void reinitBart(Bart *bart, SpriteManager *spriteManager)
     bart->body->CreateFixture(&fix);
 
     bart->body->SetGravityScale(0.0f);
-    bart->body->SetLinearDamping(10.0f);
+    bart->body->SetLinearDamping(1.0f);
     bart->body->SetAngularDamping(20.0f);
 
     // Restore sprite
@@ -396,6 +395,7 @@ void counting(int *multiplier, b2Body *player)
             *multiplier = 1;
             player->SetTransform(b2Vec2(PixelsToMeters(190), PixelsToMeters(20)), 0);
             player->SetType(b2_staticBody);
+            *playerEnabledPtr = false;
             roundtimer = maxtime;  // Reset timer for next round
             startcounting = false; // Stop counting until next round
             bartphase = 0;

@@ -21,6 +21,9 @@ int currentRound;
 int *currentRoundPtr = &currentRound;
 int gems;
 
+bool playerEnabled = false;
+bool *playerEnabledPtr = &playerEnabled;
+
 b2Body *player;
 
 UIText scoreText;
@@ -78,6 +81,14 @@ void initSOC()
 void continuegame()
 {
     changeScene(&scenemanager, 1);
+    resetBarts();
+    score = 0;
+    totalScore = 0;
+    multiplier = 1;
+    currentRound = 0;
+    startcounting = false;
+    selectedBarts = 0;
+
 }
 
 void quitgame()
@@ -114,16 +125,16 @@ void texts()
     endGems.Init("Gems: \n" + std::to_string(gems), font, 210, 130, 1.0f, C2D_Color32(0, 0, 255, 255));
     itemsButton.label = new UIText;
     itemsButton.label->Init("Items", font, itemsButton.x + 5, itemsButton.y + 15, 0.5f, C2D_Color32(255, 255, 255, 255));
+
     copperamount.Init("(" + std::to_string(copperPaintCount) + ")", font, 40, 125, 0.5f, C2D_Color32(255, 255, 255, 255));
     goldamount.Init("(" + std::to_string(goldPaintCount) + ")", font, 110, 125, 0.5f, C2D_Color32(255, 255, 255, 255));
 
     continuebutton.label = new UIText;
-    continuebutton.label->Init("Continue", font, continuebutton.x + 50, continuebutton.y + 50, 0.5f, C2D_Color32(255, 255, 255, 255));
+    continuebutton.label->Init("Continue", font, continuebutton.x + 55, continuebutton.y + 50, 1.0f, C2D_Color32(0, 0, 0, 255));
     quitbutton.label = new UIText;
-    quitbutton.label->Init("Quit", font, quitbutton.x + 50, quitbutton.y + 50, 0.5f, C2D_Color32(255, 255, 255, 255));
+    quitbutton.label->Init("Quit", font, quitbutton.x + 65, quitbutton.y + 50, 1.0f, C2D_Color32(0, 0, 0, 255));
     storebutton.label = new UIText;
-    storebutton.label->Init("Store", font, storebutton.x + 50, storebutton.y + 50, 0.5f, C2D_Color32(255, 255, 255, 255));
-
+    storebutton.label->Init("Store", font, storebutton.x + 60, storebutton.y + 50, 1.0f, C2D_Color32(0, 0, 0, 255));
 }
 
 void drawTransition()
@@ -224,7 +235,14 @@ void loadUI()
     UIButton_SetHoverSprite(&quitbutton, 1);
     UIButton_SetPressedSprite(&quitbutton, 0);
 
-
+    startButton.onClick = onStartButtonClick;
+    howtoplayButton.onClick = onHowToPlayButtonClick;
+    itemsButton.onClick = onItemsButtonClick;
+    copperPaint.onClick = onCopperPaintButtonClick;
+    goldPaint.onClick = onGoldPaintButtonClick;
+    continuebutton.onClick = continuegame;
+    quitbutton.onClick = quitgame;
+    storebutton.onClick = store;
 }
 
 void loadSprites()
@@ -295,12 +313,11 @@ void drawTop(C3D_RenderTarget *target)
         endGems.SetText("Gems: \n" + std::to_string(gems));
         endGems.Draw();
     }
-
 }
 
 void drawBottom(C3D_RenderTarget *target)
 {
-    C2D_TargetClear(target, C2D_Color32(0, 0, 0, 0));
+    C2D_TargetClear(target, C2D_Color32(0, 0, 0, 1));
     C2D_SceneBegin(target);
 
     if (scenemanager.currentScene == 0)
@@ -320,14 +337,14 @@ void drawBottom(C3D_RenderTarget *target)
         drawBarts();
 
         player = PhysicsManager_GetPlayer();
-        if (player)
+        if (player && playerEnabled)  // Only draw player if it exists and is enabled
         {
             b2Vec2 pos = player->GetPosition();
             float px = MetersToPixels(pos.x);
             float py = MetersToPixels(pos.y);
             C2D_Sprite playerSprite;
 
-            C2D_SpriteFromSheet(&playerSprite, SpriteManager_GetSheet(&spriteManager, "barts"), 0);
+            C2D_SpriteFromSheet(&playerSprite, SpriteManager_GetSheet(&spriteManager, "barts"), 2);
             C2D_SpriteSetPos(&playerSprite, px, py);
             C2D_SpriteSetRotation(&playerSprite, player->GetAngle());
             C2D_SpriteSetCenter(&playerSprite, 0.5f, 0.5f);
@@ -357,8 +374,10 @@ void drawBottom(C3D_RenderTarget *target)
         if (bartphase == 0)
         {
             if (player)
+            {
                 player->SetTransform(b2Vec2(PixelsToMeters(190), PixelsToMeters(20)), 0);
-            player->SetType(b2_staticBody);
+                player->SetType(b2_staticBody);
+            }
             if (kDown & KEY_TOUCH)
             {
                 findBart(touch, &selectedBarts, &spriteManager, itemsButton.toggled);
@@ -379,6 +398,7 @@ void drawBottom(C3D_RenderTarget *target)
             {
                 bartphase = 1;
                 PhysicsManager_SpawnPlayer(190, 20);
+                playerEnabled = true;
                 deinitBart(firstBart);
             }
         }
@@ -469,11 +489,6 @@ int main(int argc, char *argv[])
         hidTouchRead(&touch);
         PhysicsManager_Update(1.0f / 60.0f);
         updateBartsAfterPhysics();
-        startButton.onClick = onStartButtonClick;
-        howtoplayButton.onClick = onHowToPlayButtonClick;
-        itemsButton.onClick = onItemsButtonClick;
-        copperPaint.onClick = onCopperPaintButtonClick;
-        goldPaint.onClick = onGoldPaintButtonClick;
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
         drawTop(top);
         drawTransition();
@@ -482,7 +497,6 @@ int main(int argc, char *argv[])
         counting(&multiplier, player);
         C3D_FrameEnd(0);
     }
-    gameexit:
 
     SpriteManager_Free(&spriteManager);
 

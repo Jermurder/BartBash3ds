@@ -6,7 +6,7 @@
 #include <random> // For std::random_device, std::mt19937, std::discrete_distribution
 #include <array>  // For std::array
 #include "sprite_manager.h"
-
+#include "physics_manager.h"
 struct SpriteManager;
 
 enum class BartType
