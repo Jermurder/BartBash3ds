@@ -5,7 +5,7 @@
 // Add a new scene if there's a free slot
 void AddScene(SceneManager *scenemanager, const char *sceneName)
 {
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 6; i++)
     {
         if (scenemanager->allocatedscenes[i] == 0)
         {

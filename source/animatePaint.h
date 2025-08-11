@@ -1,9 +1,13 @@
 #pragma once
 #include <3ds.h>
 #include <citro2d.h>
-extern C2D_Sprite copperSprite;
-extern C2D_Sprite goldSprite;
 
+struct paintsprite  {
+    int x, y;
+    C2D_Sprite sprite;
+};
 
+extern paintsprite paints[2];
 void initPaint();
-void spinPaint();
+void drawCopper();
+void drawGold();

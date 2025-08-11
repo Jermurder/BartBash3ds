@@ -1,7 +1,7 @@
 #pragma once
 #include "include.h"
 
-#define MAX_SPRITESHEETS 8
+#define MAX_SPRITESHEETS 16
 
 typedef struct
 {

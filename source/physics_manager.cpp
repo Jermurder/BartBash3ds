@@ -29,7 +29,7 @@ void PhysicsManager_Init()
 
     // Left wall
     b2BodyDef leftWallDef;
-    leftWallDef.position.Set(PixelsToMeters(40), PixelsToMeters(120)); // 40px from left, vertically centered
+    leftWallDef.position.Set(PixelsToMeters(30), PixelsToMeters(120)); // 40px from left, vertically centered
     b2Body *leftWall = world->CreateBody(&leftWallDef);
 
     b2PolygonShape leftWallShape;

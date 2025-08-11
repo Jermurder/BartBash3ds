@@ -60,9 +60,10 @@ void UIButton_Update(UIButton *btn, touchPosition touch)
 
 void UIButton_Draw(UIButton *btn)
 {
+    uint8_t byte0 = (uint8_t)btn->color;
     if (btn->spriteNormal == -1)
     {
-        if (btn->toggled && btn->outline)
+        if (btn->toggled && btn->outline && byte0 != 0)
         {
             C2D_DrawRectSolid(btn->x - 2, btn->y -2, 0.0f, btn->width + 4, btn->height + 4, C2D_Color32(255, 255, 255, 255));
         }

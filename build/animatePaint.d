@@ -1,6 +1,6 @@
 animatePaint.o: \
- C:/Users/jermu/Documents/3ds/bartbash/source/animatePaint.cpp \
- C:/Users/jermu/Documents/3ds/bartbash/source/animatePaint.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/animatePaint.cpp \
+ C:/Users/jermu/documents/3ds/bartbash/source/animatePaint.h \
  C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \
  C:/devkitPro/libctru/include/3ds/result.h \
@@ -111,8 +111,8 @@ animatePaint.o: \
  C:/devkitPro/libctru/include/c2d/sprite.h \
  C:/devkitPro/libctru/include/c2d/text.h \
  C:/devkitPro/libctru/include/c2d/font.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/sprite_manager.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/include.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/sprite_manager.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/include.h \
  C:/devkitPro/portlibs/3ds/include/opus/opus.h \
  C:/devkitPro/portlibs/3ds/include/opus/opus_types.h \
  C:/devkitPro/portlibs/3ds/include/opus/opus_defines.h \
@@ -159,16 +159,16 @@ animatePaint.o: \
  C:/devkitPro/portlibs/3ds/include/box2d/b2_revolute_joint.h \
  C:/devkitPro/portlibs/3ds/include/box2d/b2_weld_joint.h \
  C:/devkitPro/portlibs/3ds/include/box2d/b2_wheel_joint.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/globals.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/delta_time.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/ui_text.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/ui_button.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/scene_manager.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/audio_manager.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/physics_manager.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/collision_listener.h \
- C:/Users/jermu/Documents/3ds/bartbash/source/bart.h
-C:/Users/jermu/Documents/3ds/bartbash/source/animatePaint.h:
+ C:/Users/jermu/documents/3ds/bartbash/source/globals.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/delta_time.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/ui_text.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/ui_button.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/scene_manager.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/audio_manager.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/physics_manager.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/collision_listener.h \
+ C:/Users/jermu/documents/3ds/bartbash/source/bart.h
+C:/Users/jermu/documents/3ds/bartbash/source/animatePaint.h:
 C:/devkitPro/libctru/include/3ds.h:
 C:/devkitPro/libctru/include/3ds/types.h:
 C:/devkitPro/libctru/include/3ds/result.h:
@@ -279,8 +279,8 @@ C:/devkitPro/libctru/include/c2d/spritesheet.h:
 C:/devkitPro/libctru/include/c2d/sprite.h:
 C:/devkitPro/libctru/include/c2d/text.h:
 C:/devkitPro/libctru/include/c2d/font.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/sprite_manager.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/include.h:
+C:/Users/jermu/documents/3ds/bartbash/source/sprite_manager.h:
+C:/Users/jermu/documents/3ds/bartbash/source/include.h:
 C:/devkitPro/portlibs/3ds/include/opus/opus.h:
 C:/devkitPro/portlibs/3ds/include/opus/opus_types.h:
 C:/devkitPro/portlibs/3ds/include/opus/opus_defines.h:
@@ -327,12 +327,12 @@ C:/devkitPro/portlibs/3ds/include/box2d/b2_pulley_joint.h:
 C:/devkitPro/portlibs/3ds/include/box2d/b2_revolute_joint.h:
 C:/devkitPro/portlibs/3ds/include/box2d/b2_weld_joint.h:
 C:/devkitPro/portlibs/3ds/include/box2d/b2_wheel_joint.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/globals.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/delta_time.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/ui_text.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/ui_button.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/scene_manager.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/audio_manager.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/physics_manager.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/collision_listener.h:
-C:/Users/jermu/Documents/3ds/bartbash/source/bart.h:
+C:/Users/jermu/documents/3ds/bartbash/source/globals.h:
+C:/Users/jermu/documents/3ds/bartbash/source/delta_time.h:
+C:/Users/jermu/documents/3ds/bartbash/source/ui_text.h:
+C:/Users/jermu/documents/3ds/bartbash/source/ui_button.h:
+C:/Users/jermu/documents/3ds/bartbash/source/scene_manager.h:
+C:/Users/jermu/documents/3ds/bartbash/source/audio_manager.h:
+C:/Users/jermu/documents/3ds/bartbash/source/physics_manager.h:
+C:/Users/jermu/documents/3ds/bartbash/source/collision_listener.h:
+C:/Users/jermu/documents/3ds/bartbash/source/bart.h:
