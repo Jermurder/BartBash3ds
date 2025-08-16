@@ -2,7 +2,12 @@
 #ifndef AUDIO_MANAGER_H
 #define AUDIO_MANAGER_H
 
+#define BUF_COUNT 3
+
 #include <cstdint>
+#include <unordered_map>
+#include <string>
+#include <3ds.h>
 
 namespace AudioManager {
 
@@ -22,7 +27,7 @@ void Exit();
 AudioHandle Play(const char* path, float pitch = 1.0f, bool loop = false, float volume = 1.0f, float pan = 0.0f);
 
 // Stop and free an instance (no-op for invalid handle).
-void Stop(AudioHandle handle);
+bool StopAudio(AudioHandle handle);
 
 // Control functions (return false if handle invalid)
 bool SetPitch(AudioHandle handle, float pitch);
@@ -31,6 +36,26 @@ bool SetPan(AudioHandle handle, float pan);
 
 // Query whether a handle is playing
 bool IsPlaying(AudioHandle handle);
+
+// Preload API
+
+struct PreloadedAudio {
+    int16_t* audioBuf = nullptr;
+    ndspWaveBuf waveBufs[BUF_COUNT];
+    int numSamples = 0;
+    // Optionally: store decoded PCM, or keep OpusFile open if you want to loop
+};
+
+// Preload a sound file into memory for instant playback
+bool LoadPreloadAudio(const char* path);
+
+// Unload a previously preloaded sound file
+void UnloadPreloadAudio(const char* path);
+
+// Global cache for preloaded audio
+extern std::unordered_map<std::string, PreloadedAudio> g_preloadedAudio;
+
+void CleanupFinishedInstances();
 
 } // namespace AudioManager
 

@@ -30,14 +30,15 @@ void CollisionListener::BeginContact(b2Contact *contact)
                 static std::uniform_real_distribution<float> pitchDist(0.6f, 1.4f);
 
                 float randomPitch = pitchDist(gen);
-
-                AudioManager::Play("romfs:/sounds/DOW.opus", randomPitch, false, 1.0f, 0.0f);
+                if (barts[i].type != BartType::GEM_BART)
+                    AudioManager::Play("romfs:/sounds/DOW.opus", randomPitch, false, 1.0f, 0.0f);
             }
 
             if (barts[i].type == BartType::GEM_BART && barts[i].touched == false)
             {
                 gems++;
                 barts[i].dissapearing = true; // Mark for dissapear
+                AudioManager::Play("romfs:/sounds/gem.opus", 1.0f, false, 1.0f, 0.0f);
             }
             barts[i].touched = true;
             startcounting = true;

@@ -11,16 +11,25 @@
 #include <cstdlib>
 #include <atomic>
 #include <algorithm>
+#include <unordered_map>
 
 // Configuration
 #define SAMPLE_RATE 48000
 #define CHANNELS 2
-#define BUF_MS 120
+#define BUF_MS 20
 #define BUF_SAMPLES (SAMPLE_RATE * BUF_MS / 1000) // frames per buffer (per channel)
 #define BUF_COUNT 3
 #define BUF_SIZE (BUF_SAMPLES * CHANNELS * sizeof(int16_t))
 #define STACK_SIZE (32 * 1024)
-#define MAX_CHANNELS 16 // NDSP channels we'll use; adjust to platform
+#define MAX_CHANNELS 4 // NDSP channels we'll use; adjust to platform
+
+using AudioHandle = int;
+
+struct PreloadedAudio {
+    int16_t* audioBuf = nullptr;
+    int numSamples = 0;
+    // You can extend with ndspWaveBuf waveBufs[BUF_COUNT] if needed for playback
+};
 
 namespace {
 
@@ -50,9 +59,8 @@ std::atomic<int> g_nextId(1);
 bool g_callbackRegistered = false;
 bool g_channelUsed[MAX_CHANNELS] = {false};
 
-// Helper: convert volume+pan to mix[2]
+// Convert volume+pan to stereo mix
 static inline void volumePanToMix(float vol, float pan, float outMix[2]) {
-    // simple linear pan:
     float left = vol * (pan <= 0.0f ? 1.0f : 1.0f - pan);
     float right = vol * (pan >= 0.0f ? 1.0f : 1.0f + pan);
     outMix[0] = left;
@@ -68,14 +76,12 @@ static const char* opusStrError(int error) {
     }
 }
 
-// Renamed callback to avoid symbol ambiguity.
 static void audioNDSPCallback(void* /*data*/) {
     if (g_initialized.load()) {
         LightEvent_Signal(&g_audioEvent);
     }
 }
 
-// Channel allocation helpers
 static int allocateChannel() {
     for (int i = 0; i < MAX_CHANNELS; ++i) {
         if (!g_channelUsed[i]) {
@@ -85,48 +91,38 @@ static int allocateChannel() {
     }
     return -1;
 }
+
 static void freeChannel(int ch) {
     if (ch >= 0 && ch < MAX_CHANNELS) g_channelUsed[ch] = false;
 }
 
-// Fill one ndspWaveBuf for the given instance. Returns false on EOF (and not looping) or error.
 static bool fillInstanceBuffer(AudioInstance* inst, ndspWaveBuf* buf) {
     int totalFrames = 0;
-    if (buf->data_pcm16 == nullptr) {
-        buf->data_pcm16 = const_cast<int16_t*>(reinterpret_cast<const int16_t*>(buf->data_vaddr));
-        printf("[AudioManager] Set data_pcm16 from data_vaddr\n");
-    }
-
-    printf("[AudioManager] Starting buffer fill: BUF_SAMPLES=%d\n", (int)BUF_SAMPLES);
-
     while (totalFrames < (int)BUF_SAMPLES) {
         int16_t* dest = reinterpret_cast<int16_t*>(buf->data_pcm16) + totalFrames * CHANNELS;
         int frames = op_read_stereo(inst->opusFile, dest, static_cast<int>(BUF_SAMPLES - totalFrames));
-        printf("[AudioManager] op_read_stereo returned %d frames (requested %d)\n", frames, (int)(BUF_SAMPLES - totalFrames));
         if (frames < 0) {
             printf("[AudioManager] Opus decode error %d\n", frames);
             return false;
         }
         if (frames == 0) {
-            printf("[AudioManager] Opus EOF reached (totalFrames=%d)\n", totalFrames);
-            // Accept partial buffer if any frames were read
-            break;
+            if (inst->loop) {
+                op_pcm_seek(inst->opusFile, 0);
+                continue; // restart
+            }
+            break; // EOF
         }
         totalFrames += frames;
     }
 
-    if (totalFrames == 0) {
-        printf("[AudioManager] No audio frames decoded, aborting\n");
-        return false;
-    }
+    if (totalFrames == 0) return false;
+
     buf->nsamples = totalFrames;
     DSP_FlushDataCache(buf->data_pcm16, totalFrames * CHANNELS * sizeof(int16_t));
     ndspChnWaveBufAdd(inst->channel, buf);
-    printf("[AudioManager] Buffer submitted to NDSP, nsamples=%d\n", totalFrames);
     return true;
 }
 
-// Thread that manages a single instance's buffers
 static void instanceThreadFunc(void* arg) {
     AudioInstance* inst = reinterpret_cast<AudioInstance*>(arg);
     while (!inst->quitting.load()) {
@@ -138,14 +134,11 @@ static void instanceThreadFunc(void* arg) {
                 }
             }
         }
-        // wait for NDSP callback signal (global)
         LightEvent_Wait(&g_audioEvent);
     }
-    // signal any waiter
     LightEvent_Signal(&inst->event);
 }
 
-// Helpers to find and remove instances
 static std::unique_ptr<AudioInstance> takeInstanceById(int id) {
     std::lock_guard<std::mutex> lk(g_instancesMutex);
     for (auto it = g_instances.begin(); it != g_instances.end(); ++it) {
@@ -157,6 +150,7 @@ static std::unique_ptr<AudioInstance> takeInstanceById(int id) {
     }
     return nullptr;
 }
+
 static AudioInstance* findInstanceByIdLocked(int id) {
     for (auto& up : g_instances) {
         if (up->id == id) return up.get();
@@ -166,8 +160,9 @@ static AudioInstance* findInstanceByIdLocked(int id) {
 
 } // anonymous namespace
 
-// Public API
 namespace AudioManager {
+
+std::unordered_map<std::string, PreloadedAudio> g_preloadedAudio;
 
 bool Init() {
     std::lock_guard<std::mutex> lk(g_instancesMutex);
@@ -177,11 +172,9 @@ bool Init() {
         printf("ndspInit failed\n");
         return false;
     }
-
     ndspSetOutputMode(NDSP_OUTPUT_STEREO);
 
     LightEvent_Init(&g_audioEvent, RESET_ONESHOT);
-
     ndspSetCallback(audioNDSPCallback, nullptr);
     g_callbackRegistered = true;
 
@@ -190,17 +183,14 @@ bool Init() {
 }
 
 void Exit() {
-    // stop instances
     {
         std::lock_guard<std::mutex> lk(g_instancesMutex);
         for (auto& inst : g_instances) {
-            if (inst) inst->quitting.store(true);
+            inst->quitting.store(true);
         }
     }
-    // wake threads so they can exit
     LightEvent_Signal(&g_audioEvent);
 
-    // join and cleanup
     std::vector<std::unique_ptr<AudioInstance>> cleanup;
     {
         std::lock_guard<std::mutex> lk(g_instancesMutex);
@@ -233,125 +223,101 @@ void Exit() {
         ndspSetCallback(nullptr, nullptr);
         g_callbackRegistered = false;
     }
-
-    // Clear the event (libctru provides LightEvent_Clear). No destructor needed.
     LightEvent_Clear(&g_audioEvent);
-
     ndspExit();
     g_initialized.store(false);
 }
 
 AudioHandle Play(const char* path, float pitch, bool loop, float volume, float pan) {
-    if (!g_initialized.load()) {
-        if (!Init()) return 0;
-    }
-
-    int err = 0;
-    OggOpusFile* of = op_open_file(path, &err);
-    if (!of) {
-        printf("[AudioManager] Failed to open Opus file '%s' (%s, %d)\n", path, opusStrError(err), err);
+    auto it = g_preloadedAudio.find(path);
+    if (it != g_preloadedAudio.end()) {
+        // TODO: Implement playback for preloaded audio here if desired.
+        printf("[AudioManager] Preloaded playback not implemented\n");
         return 0;
-    }
-    printf("[AudioManager] Opus file opened successfully\n");
-
-    // allocate instance
-    auto inst = std::make_unique<AudioInstance>();
-    int id = g_nextId.fetch_add(1);
-    inst->id = id;
-    inst->opusFile = of;
-    inst->pitch = pitch;
-    inst->loop = loop;
-    inst->volume = volume;
-    inst->pan = pan;
-    LightEvent_Init(&inst->event, RESET_ONESHOT);
-
-    // allocate channel
-    int ch = allocateChannel();
-    if (ch < 0) {
-        printf("No free NDSP channels\n");
-        op_free(of);
-        return 0;
-    }
-    inst->channel = ch;
-
-    // configure NDSP channel
-    ndspChnReset(ch);
-    ndspChnSetInterp(ch, NDSP_INTERP_POLYPHASE);
-    ndspChnSetRate(ch, static_cast<unsigned int>(SAMPLE_RATE * inst->pitch));
-    ndspChnSetFormat(ch, NDSP_FORMAT_STEREO_PCM16);
-    float mix[2];
-    volumePanToMix(inst->volume, inst->pan, mix);
-    ndspChnSetMix(ch, mix);
-
-    // allocate linear buffer (BUF_COUNT * BUF_SIZE)
-    inst->audioBuf = static_cast<int16_t*>(linearAlloc(BUF_COUNT * BUF_SIZE));
-    if (!inst->audioBuf) {
-        printf("linearAlloc failed for audio buffer\n");
-        freeChannel(ch);
-        op_free(of);
-        return 0;
-    }
-
-    // initialize wavebufs and pointers
-    std::memset(inst->waveBufs, 0, sizeof(inst->waveBufs));
-    for (int i = 0; i < BUF_COUNT; ++i) {
-        void* v = reinterpret_cast<void*>(inst->audioBuf + (i * BUF_SIZE / sizeof(int16_t)));
-        inst->waveBufs[i].data_vaddr = v; // non-const void*
-        // set pcm pointer explicitly to avoid const issues
-        inst->waveBufs[i].data_pcm16 = reinterpret_cast<int16_t*>(v);
-        inst->waveBufs[i].nsamples = 0;
-        inst->waveBufs[i].status = 0;
-        inst->waveBufs[i].looping = false;
-    }
-
-    // pre-fill buffers
-    bool ok = true;
-    for (int i = 0; i < BUF_COUNT; ++i) {
-        if (!fillInstanceBuffer(inst.get(), &inst->waveBufs[i])) {
-            ok = false;
-            break;
+    } else {
+        int err = 0;
+        OggOpusFile* of = op_open_file(path, &err);
+        if (!of) {
+            printf("[AudioManager] Failed to open Opus file '%s' (%s, %d)\n", path, opusStrError(err), err);
+            return 0;
         }
-    }
-    if (!ok) {
-        printf("Initial buffer fill failed for '%s'\n", path);
-        if (inst->audioBuf) linearFree(inst->audioBuf);
-        freeChannel(ch);
-        op_free(of);
-        return 0;
-    }
 
-    // create thread
-    s32 prio;
-    svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
-    s32 tprio = prio > 0x18 ? prio - 1 : prio;
-    inst->quitting.store(false);
-    inst->threadId = threadCreate(instanceThreadFunc, inst.get(), STACK_SIZE, tprio, -1, false);
-    if (inst->threadId == 0) {
-        printf("threadCreate failed\n");
-        if (inst->audioBuf) linearFree(inst->audioBuf);
-        freeChannel(ch);
-        op_free(of);
-        return 0;
+        auto inst = std::make_unique<AudioInstance>();
+        int id = g_nextId.fetch_add(1);
+        inst->id = id;
+        inst->opusFile = of;
+        inst->pitch = pitch;
+        inst->loop = loop;
+        inst->volume = volume;
+        inst->pan = pan;
+        LightEvent_Init(&inst->event, RESET_ONESHOT);
+
+        int ch = allocateChannel();
+        if (ch < 0) {
+            printf("No free NDSP channels\n");
+            op_free(of);
+            return 0;
+        }
+        inst->channel = ch;
+
+        ndspChnReset(ch);
+        ndspChnSetInterp(ch, NDSP_INTERP_POLYPHASE);
+        ndspChnSetRate(ch, static_cast<unsigned int>(SAMPLE_RATE * inst->pitch));
+        ndspChnSetFormat(ch, NDSP_FORMAT_STEREO_PCM16);
+        float mix[2];
+        volumePanToMix(inst->volume, inst->pan, mix);
+        ndspChnSetMix(ch, mix);
+
+        inst->audioBuf = static_cast<int16_t*>(linearAlloc(BUF_COUNT * BUF_SIZE));
+        if (!inst->audioBuf) {
+            printf("linearAlloc failed\n");
+            op_free(of);
+            freeChannel(ch);
+            return 0;
+        }
+
+        for (int i = 0; i < BUF_COUNT; ++i) {
+            inst->waveBufs[i].data_pcm16 = inst->audioBuf + i * BUF_SAMPLES * CHANNELS;
+            inst->waveBufs[i].nsamples = 0;
+            inst->waveBufs[i].status = NDSP_WBUF_DONE; // Mark done to fill first
+            inst->waveBufs[i].next = nullptr;
+        }
+
+        // Fill initial buffers
+        for (int i = 0; i < BUF_COUNT; ++i) {
+            if (!fillInstanceBuffer(inst.get(), &inst->waveBufs[i])) {
+                printf("[AudioManager] Failed to fill initial buffer\n");
+                linearFree(inst->audioBuf);
+                op_free(of);
+                freeChannel(ch);
+                return 0;
+            }
+        }
+
+        ndspChnWaveBufAdd(ch, &inst->waveBufs[0]);
+
+        inst->threadId = threadCreate(instanceThreadFunc, inst.get(), STACK_SIZE, 0x30, -2, false);
+        if (!inst->threadId) {
+            printf("Failed to create audio thread\n");
+            linearFree(inst->audioBuf);
+            op_free(of);
+            freeChannel(ch);
+            return 0;
+        }
+
+        {
+            std::lock_guard<std::mutex> lk(g_instancesMutex);
+            g_instances.push_back(std::move(inst));
+        }
+        return id;
     }
-
-    // add to global list
-    {
-        std::lock_guard<std::mutex> lk(g_instancesMutex);
-        g_instances.push_back(std::move(inst));
-    }
-
-    printf("[AudioManager] Play: path='%s', pitch=%f, loop=%d, volume=%f, pan=%f\n", path, pitch, loop, volume, pan);
-
-    return id;
 }
 
-void Stop(AudioHandle handle) {
-    if (handle == 0) return;
+bool StopAudio(AudioHandle handle) {
     auto inst = takeInstanceById(handle);
-    if (!inst) return;
+    if (!inst) return false;
 
     inst->quitting.store(true);
-    // wake thread
     LightEvent_Signal(&g_audioEvent);
     if (inst->threadId) {
         threadJoin(inst->threadId, UINT64_MAX);
@@ -372,54 +338,133 @@ void Stop(AudioHandle handle) {
         freeChannel(inst->channel);
         inst->channel = -1;
     }
-}
-
-bool SetPitch(AudioHandle handle, float pitch) {
-    if (handle == 0) return false;
-    std::lock_guard<std::mutex> lk(g_instancesMutex);
-    AudioInstance* inst = findInstanceByIdLocked(handle);
-    if (!inst) return false;
-    inst->pitch = pitch;
-    if (inst->channel >= 0) {
-        ndspChnSetRate(inst->channel, static_cast<unsigned int>(SAMPLE_RATE * inst->pitch));
-    }
     return true;
 }
 
-bool SetVolume(AudioHandle handle, float volume) {
-    if (handle == 0) return false;
+bool IsPlaying(AudioHandle id) {
     std::lock_guard<std::mutex> lk(g_instancesMutex);
-    AudioInstance* inst = findInstanceByIdLocked(handle);
-    if (!inst) return false;
-    inst->volume = volume;
-    if (inst->channel >= 0) {
-        float mix[2];
-        volumePanToMix(inst->volume, inst->pan, mix);
-        ndspChnSetMix(inst->channel, mix);
-    }
-    return true;
-}
-
-bool SetPan(AudioHandle handle, float pan) {
-    if (handle == 0) return false;
-    std::lock_guard<std::mutex> lk(g_instancesMutex);
-    AudioInstance* inst = findInstanceByIdLocked(handle);
-    if (!inst) return false;
-    inst->pan = pan;
-    if (inst->channel >= 0) {
-        float mix[2];
-        volumePanToMix(inst->volume, inst->pan, mix);
-        ndspChnSetMix(inst->channel, mix);
-    }
-    return true;
-}
-
-bool IsPlaying(AudioHandle handle) {
-    if (handle == 0) return false;
-    std::lock_guard<std::mutex> lk(g_instancesMutex);
-    AudioInstance* inst = findInstanceByIdLocked(handle);
+    AudioInstance* inst = findInstanceByIdLocked(id);
     if (!inst) return false;
     return !inst->quitting.load();
+}
+
+bool SetVolume(AudioHandle id, float volume) {
+    std::lock_guard<std::mutex> lk(g_instancesMutex);
+    AudioInstance* inst = findInstanceByIdLocked(id);
+    if (!inst) return false;
+    inst->volume = volume;
+    float mix[2];
+    volumePanToMix(inst->volume, inst->pan, mix);
+    ndspChnSetMix(inst->channel, mix);
+    return true;
+}
+
+bool SetPan(AudioHandle id, float pan) {
+    std::lock_guard<std::mutex> lk(g_instancesMutex);
+    AudioInstance* inst = findInstanceByIdLocked(id);
+    if (!inst) return false;
+    inst->pan = pan;
+    float mix[2];
+    volumePanToMix(inst->volume, inst->pan, mix);
+    ndspChnSetMix(inst->channel, mix);
+    return true;
+}
+
+bool SetPitch(AudioHandle id, float pitch) {
+    std::lock_guard<std::mutex> lk(g_instancesMutex);
+    AudioInstance* inst = findInstanceByIdLocked(id);
+    if (!inst) return false;
+    inst->pitch = pitch;
+    ndspChnSetRate(inst->channel, static_cast<unsigned int>(SAMPLE_RATE * pitch));
+    return true;
+}
+
+bool LoadPreloadAudio(const char* path) {
+    // Load entire opus file into memory for preloading
+    int err;
+    OggOpusFile* of = op_open_file(path, &err);
+    if (!of) {
+        printf("[AudioManager] Failed to preload Opus file '%s' (%s)\n", path, opusStrError(err));
+        return false;
+    }
+
+    ogg_int64_t totalSamples = op_pcm_total(of, -1);
+    if (totalSamples <= 0) {
+        printf("[AudioManager] Invalid total samples in '%s'\n", path);
+        op_free(of);
+        return false;
+    }
+
+    int totalFrames = static_cast<int>(totalSamples);
+    int16_t* buf = (int16_t*)malloc(totalFrames * CHANNELS * sizeof(int16_t));
+    if (!buf) {
+        printf("[AudioManager] malloc failed for preload '%s'\n", path);
+        op_free(of);
+        return false;
+    }
+
+    int readFrames = 0;
+    int offset = 0;
+    while (readFrames < totalFrames) {
+        int r = op_read_stereo(of, buf + offset, totalFrames - readFrames);
+        if (r < 0) {
+            printf("[AudioManager] Error decoding during preload '%s'\n", path);
+            free(buf);
+            op_free(of);
+            return false;
+        }
+        if (r == 0) break;
+        offset += r * CHANNELS;
+        readFrames += r;
+    }
+    op_free(of);
+
+    PreloadedAudio preloaded;
+    preloaded.audioBuf = buf;
+    preloaded.numSamples = totalFrames;
+
+    g_preloadedAudio[path] = std::move(preloaded);
+    printf("[AudioManager] Preloaded '%s' with %d frames\n", path, totalFrames);
+    return true;
+}
+
+void UnloadPreloadAudio(const char* path) {
+    auto it = g_preloadedAudio.find(path);
+    if (it != g_preloadedAudio.end()) {
+        free(it->second.audioBuf);
+        g_preloadedAudio.erase(it);
+    }
+}
+
+void CleanupFinishedInstances() {
+    std::lock_guard<std::mutex> lk(g_instancesMutex);
+    auto it = g_instances.begin();
+    while (it != g_instances.end()) {
+        AudioInstance* inst = it->get();
+        if (inst->quitting.load()) {
+            if (inst->threadId) {
+                threadJoin(inst->threadId, UINT64_MAX);
+                threadFree(inst->threadId);
+                inst->threadId = 0;
+            }
+            if (inst->audioBuf) {
+                linearFree(inst->audioBuf);
+                inst->audioBuf = nullptr;
+            }
+            if (inst->opusFile) {
+                op_free(inst->opusFile);
+                inst->opusFile = nullptr;
+            }
+            if (inst->channel >= 0) {
+                ndspChnReset(inst->channel);
+                freeChannel(inst->channel);
+                inst->channel = -1;
+            }
+            it = g_instances.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 } // namespace AudioManager

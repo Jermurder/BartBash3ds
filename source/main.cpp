@@ -64,6 +64,7 @@ UIText copperamount;
 UIText goldamount;
 
 UIText Multiplier;
+UIText tutorial;
 
 UIButton continuebutton, quitbutton, storebutton;
 
@@ -118,6 +119,12 @@ void continuegame()
 void quitgame()
 {
     changeScene(&scenemanager, 0);
+    score = 0;
+    totalScore = 0;
+    multiplier = 1;
+    currentRound = 0;
+    startcounting = false;
+    selectedBarts = 0;
 }
 
 void store()
@@ -152,7 +159,7 @@ void texts()
     endScore.Init("Score: \n" + std::to_string(totalScore), font, 100, 130, 1.0f, C2D_Color32(0, 0, 255, 255));
     endGems.Init("Gems: \n" + std::to_string(gems), font, 210, 130, 1.0f, C2D_Color32(0, 0, 255, 255));
     itemsButton.label = new UIText;
-    itemsButton.label->Init("Items", font, itemsButton.x + 5, itemsButton.y + 15, 0.5f, C2D_Color32(255, 255, 255, 255));
+    itemsButton.label->Init("Items", font, itemsButton.x + 8, itemsButton.y + 18, 0.5f, C2D_Color32(255, 255, 255, 255));
 
     copperamount.Init("(" + std::to_string(copperPaintCount) + ")", font, 40, 125, 0.5f, C2D_Color32(255, 255, 255, 255));
     goldamount.Init("(" + std::to_string(goldPaintCount) + ")", font, 110, 125, 0.5f, C2D_Color32(255, 255, 255, 255));
@@ -174,6 +181,7 @@ void texts()
 
     backToEnd.label = new UIText;
     backToEnd.label->Init("Back", font, backToEnd.x + 12, backToEnd.y + 17, 0.5f, C2D_Color32(255, 255, 255, 255));
+    
 }
 
 void drawTransition()
@@ -214,9 +222,9 @@ void onStartButtonClick()
 {
     changeScene(&scenemanager, 1);
     if (currentAudioHandle) {
-        AudioManager::Stop(currentAudioHandle);
+        AudioManager::StopAudio(currentAudioHandle);
     }
-    currentAudioHandle = AudioManager::Play("romfs:/sounds/bashs.opus", 1.0f, true, 1.0f, 0.0f);
+    currentAudioHandle = AudioManager::Play("romfs:/sounds/bashs.opus", 1.0f, false, 1.0f, 0.0f);
     redrawTop = true;
     redrawBottom = true;
 }
@@ -258,6 +266,7 @@ void buyPaint()
             gems -= 5;
             copperPaintCount++;
             copperamount.SetText("(" + std::to_string(copperPaintCount) + ")");
+            AudioManager::Play("romfs:/sounds/cash.opus", 1.0f, false, 1.0f, 0.0f);
         }
     }
     else if (storephase == 2)
@@ -267,6 +276,7 @@ void buyPaint()
             gems -= 10;
             goldPaintCount++;
             goldamount.SetText("(" + std::to_string(goldPaintCount) + ")");
+            AudioManager::Play("romfs:/sounds/cash.opus", 1.0f, false, 1.0f, 0.0f);
         }
     }
 }
@@ -278,42 +288,42 @@ void goToEnd()
 
 void loadUI()
 {
-    UIButton_Init(&startButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 30, 220, 80, NULL, false);
+    UIButton_Init(&startButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 30, 220, 80, NULL, false, true);
     UIButton_SetHoverSprite(&startButton, 1);
     UIButton_SetPressedSprite(&startButton, 0);
 
-    UIButton_Init(&howtoplayButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 130, 220, 80, NULL, false);
+    UIButton_Init(&howtoplayButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 130, 220, 80, NULL, false, true);
     UIButton_SetHoverSprite(&howtoplayButton, 1);
     UIButton_SetPressedSprite(&howtoplayButton, 0);
 
 
 
-    UIButton_Init(&itemsButton, NULL, -1, 10, 5, 50, 30, C2D_Color32(255, 0, 0, 255), true);
-    UIButton_Init(&copperPaint, NULL, -1, 20, 50, 60, 80, C2D_Color32(0, 0, 0, 200), true);
+    UIButton_Init(&itemsButton, NULL, -1, 10, 5, 50, 30, C2D_Color32(255, 0, 0, 255), true, false);
+    UIButton_Init(&copperPaint, NULL, -1, 20, 50, 60, 80, C2D_Color32(0, 0, 0, 255), true, false);
 
-    UIButton_Init(&goldPaint, NULL, -1, 85, 50, 60, 80, C2D_Color32(0, 0, 0, 200), true);
+    UIButton_Init(&goldPaint, NULL, -1, 85, 50, 60, 80, C2D_Color32(0, 0, 0, 255), true, false);
 
-    UIButton_Init(&continuebutton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 10, 220, 80, NULL, false);
+    UIButton_Init(&continuebutton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 10, 220, 80, NULL, false, true);
     UIButton_SetHoverSprite(&continuebutton, 1);
     UIButton_SetPressedSprite(&continuebutton, 0);
 
-    UIButton_Init(&storebutton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 100, 220, 80, NULL, false);
+    UIButton_Init(&storebutton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 100, 220, 80, NULL, false, true);
     UIButton_SetHoverSprite(&storebutton, 1);
     UIButton_SetPressedSprite(&storebutton, 0);
 
-    UIButton_Init(&quitbutton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 190, 220, 80, NULL, false);
+    UIButton_Init(&quitbutton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 190, 220, 80, NULL, false, true);
     UIButton_SetHoverSprite(&quitbutton, 1);
     UIButton_SetPressedSprite(&quitbutton, 0);
 
-    UIButton_Init(&buyButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 30, 220, 80, NULL, false);
+    UIButton_Init(&buyButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 30, 220, 80, NULL, false, true);
     UIButton_SetHoverSprite(&buyButton, 1);
     UIButton_SetPressedSprite(&buyButton, 0);
 
-    UIButton_Init(&backButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 130, 220, 80, NULL, false);
+    UIButton_Init(&backButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 130, 220, 80, NULL, false, true);
     UIButton_SetHoverSprite(&backButton, 1);
     UIButton_SetPressedSprite(&backButton, 0);
 
-    UIButton_Init(&backToEnd, NULL, -1, 10, 10, 60, 30, C2D_Color32(0, 0, 0, 200), false);
+    UIButton_Init(&backToEnd, NULL, -1, 10, 10, 60, 30, C2D_Color32(0, 0, 0, 200), false, true);
 
     startButton.onClick = onStartButtonClick;
     howtoplayButton.onClick = onHowToPlayButtonClick;
@@ -641,13 +651,13 @@ void drawBottom(C3D_RenderTarget *target)
             }
 
             C2D_Sprite copperselect;
-            C2D_SpriteFromSheet(&copperselect, SpriteManager_GetSheet(&spriteManager, "paint"), 1);
+            C2D_SpriteFromSheet(&copperselect, SpriteManager_GetSheet(&spriteManager, "paint"), 2);
             C2D_SpriteSetPos(&copperselect, offsetX + 96, 0);
             if (hoveringCopper)
                 C2D_DrawSprite(&copperselect);
 
             C2D_Sprite goldselect;
-            C2D_SpriteFromSheet(&goldselect, SpriteManager_GetSheet(&spriteManager, "paint"), 2);
+            C2D_SpriteFromSheet(&goldselect, SpriteManager_GetSheet(&spriteManager, "paint"), 1);
             C2D_SpriteSetPos(&goldselect, offsetX + 96, 0);
             if (hoveringGold)
                 C2D_DrawSprite(&goldselect);
@@ -713,7 +723,7 @@ int main(int argc, char *argv[])
     srand(static_cast<unsigned int>(time(NULL)));
     initPaint();
     AudioManager::Init();
-    currentAudioHandle = AudioManager::Play("romfs:/sounds/bort.opus", 1.0f, true, 1.0f, 0.0f);
+    currentAudioHandle = AudioManager::Play("romfs:/sounds/bort.opus", 1.0f, false, 1.0f, 0.0f);
     while (aptMainLoop())
     {
         DeltaTime_Update();
@@ -727,6 +737,7 @@ int main(int argc, char *argv[])
         hidTouchRead(&touch);
         PhysicsManager_Update(1.0f / 60.0f);
         updateBartsAfterPhysics();
+        AudioManager::CleanupFinishedInstances();
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
         drawTop(top);
         drawTransition();

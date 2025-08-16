@@ -2,7 +2,7 @@
 #include <3ds.h>     // For hidKeysDown, hidKeysUp and touchPosition
 #include <citro2d.h> // For C2D_Sprite
 
-void UIButton_Init(UIButton *btn, C2D_SpriteSheet sheet, int spriteNormal, float x, float y, float width, float height, u32 color, bool outline)
+void UIButton_Init(UIButton *btn, C2D_SpriteSheet sheet, int spriteNormal, float x, float y, float width, float height, u32 color, bool outline, bool sound)
 {
     btn->sheet = sheet;
     btn->spriteNormal = spriteNormal;
@@ -20,6 +20,7 @@ void UIButton_Init(UIButton *btn, C2D_SpriteSheet sheet, int spriteNormal, float
     btn->spriteHover = 0;
     btn->color = color;
     btn->outline = outline;
+    btn->sound = sound;
 }
 
 void UIButton_SetHoverSprite(UIButton *btn, int spriteHover)
@@ -54,6 +55,10 @@ void UIButton_Update(UIButton *btn, touchPosition touch)
         if (btn->onClick)
         {
             btn->onClick();
+            if (btn->sound)
+            {
+                AudioManager::Play("romfs:/sounds/key.opus", 1.0f, false, 1.0f, 0.0f);
+            }
         }
     }
 }
@@ -63,7 +68,7 @@ void UIButton_Draw(UIButton *btn)
     uint8_t byte0 = (uint8_t)btn->color;
     if (btn->spriteNormal == -1)
     {
-        if (btn->toggled && btn->outline && byte0 != 0)
+        if (btn->toggled && btn->outline)
         {
             C2D_DrawRectSolid(btn->x - 2, btn->y -2, 0.0f, btn->width + 4, btn->height + 4, C2D_Color32(255, 255, 255, 255));
         }

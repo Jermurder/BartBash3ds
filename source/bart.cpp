@@ -38,7 +38,7 @@ void drawBarts()
                     barts[i].body->DestroyFixture(barts[i].body->GetFixtureList());
                     barts[i].initialized = false;
                     barts[i].dissapearing = false; // Stop dissapearing
-                    continue; // Skip drawing this Bart
+                    continue;                      // Skip drawing this Bart
                 }
             }
 
@@ -108,37 +108,39 @@ void addBart(float x, float y, BartType type)
     }
 }
 
-struct BartChance {
+struct BartChance
+{
     BartType type;
     float weight;
 };
 
-BartType getRandomBartType() {
+BartType getRandomBartType()
+{
     static std::mt19937 rng(std::random_device{}());
     static std::vector<BartChance> chances = {
-        {BartType::REGULAR_BART,     0.50f},
-        {BartType::DIRT_BART,        0.10f},
-        {BartType::GOLD_BART,        0.05f},
-        {BartType::COPPER_BART,      0.08f},
-        {BartType::SUPERGOLD_BART,   0.01f},
+        {BartType::REGULAR_BART, 0.50f},
+        {BartType::DIRT_BART, 0.10f},
+        {BartType::GOLD_BART, 0.05f},
+        {BartType::COPPER_BART, 0.08f},
+        {BartType::SUPERGOLD_BART, 0.01f},
         {BartType::SUPERCOPPER_BART, 0.02f},
-        {BartType::GEM_BART,         0.03f},
-        {BartType::FAKECOPPER_BART,  0.10f},
-        {BartType::FAKEGOLD_BART,    0.11f}
-    };
+        {BartType::GEM_BART, 0.03f},
+        {BartType::FAKECOPPER_BART, 0.10f},
+        {BartType::FAKEGOLD_BART, 0.11f}};
 
     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
     float roll = dist(rng);
 
     float cumulative = 0.0f;
-    for (const auto& c : chances) {
+    for (const auto &c : chances)
+    {
         cumulative += c.weight;
-        if (roll < cumulative) return c.type;
+        if (roll < cumulative)
+            return c.type;
     }
 
     return BartType::REGULAR_BART;
 }
-
 
 void spawnBarts()
 {
@@ -147,10 +149,10 @@ void spawnBarts()
     const int maxAttemptsPerBart = 100;
 
     // Random number generator setup
-    static std::random_device rd;  // Seed source (once)
-    static std::mt19937 gen(rd()); // Mersenne Twister RNG
-    std::uniform_int_distribution<> distX(40, 279);  // 240 + 40 - 1 = 279
-    std::uniform_int_distribution<> distY(80, 219);  // 140 + 80 - 1 = 219
+    static std::random_device rd;                   // Seed source (once)
+    static std::mt19937 gen(rd());                  // Mersenne Twister RNG
+    std::uniform_int_distribution<> distX(40, 279); // 240 + 40 - 1 = 279
+    std::uniform_int_distribution<> distY(80, 219); // 140 + 80 - 1 = 219
 
     for (int i = 0; i < count; i++)
     {
@@ -250,6 +252,8 @@ void findBart(touchPosition touch, int *selectedBarts, SpriteManager *spriteMana
                     {
                         firstBart = &barts[i];
                     }
+                    AudioManager::Play("romfs:/sounds/dsgetpow.opus", 1.0f + (*selectedBarts / 15.0f), false, 1.0f, 0.0f);
+
                     (*selectedBarts)++;
                 }
                 else if (barts[i].type == BartType::BONUS_BART && barts[i].clicked)
@@ -286,7 +290,7 @@ void paintBart(touchPosition touch, SpriteManager *spriteManager, bool gold, int
                 {
                     barts[i].type = BartType::FAKEGOLD_BART;
                     barts[i].sprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(spriteManager, "barts"), static_cast<int>(barts[i].type));
-                (*goldPaintCount)--;
+                    (*goldPaintCount)--;
                 }
             }
         }
@@ -401,7 +405,6 @@ void counting(int *multiplier, b2Body *player)
             bartphase = 0;
             selectedBarts = 0;
             resetBarts();
-
 
             (*currentRoundPtr) += 1;
             if (*currentRoundPtr >= 3)
