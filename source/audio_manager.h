@@ -56,6 +56,7 @@ void UnloadPreloadAudio(const char* path);
 extern std::unordered_map<std::string, PreloadedAudio> g_preloadedAudio;
 
 void CleanupFinishedInstances();
+bool PreloadAudio(const char* path);
 
 } // namespace AudioManager
 

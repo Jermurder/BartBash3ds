@@ -16,7 +16,7 @@
 // Configuration
 #define SAMPLE_RATE 48000
 #define CHANNELS 2
-#define BUF_MS 20
+#define BUF_MS 30
 #define BUF_SAMPLES (SAMPLE_RATE * BUF_MS / 1000) // frames per buffer (per channel)
 #define BUF_COUNT 3
 #define BUF_SIZE (BUF_SAMPLES * CHANNELS * sizeof(int16_t))
@@ -231,87 +231,137 @@ void Exit() {
 AudioHandle Play(const char* path, float pitch, bool loop, float volume, float pan) {
     auto it = g_preloadedAudio.find(path);
     if (it != g_preloadedAudio.end()) {
-        // TODO: Implement playback for preloaded audio here if desired.
-        printf("[AudioManager] Preloaded playback not implemented\n");
-        return 0;
-    } else {
-        int err = 0;
-        OggOpusFile* of = op_open_file(path, &err);
-        if (!of) {
-            printf("[AudioManager] Failed to open Opus file '%s' (%s, %d)\n", path, opusStrError(err), err);
-            return 0;
-        }
-
-        auto inst = std::make_unique<AudioInstance>();
-        int id = g_nextId.fetch_add(1);
-        inst->id = id;
-        inst->opusFile = of;
-        inst->pitch = pitch;
-        inst->loop = loop;
-        inst->volume = volume;
-        inst->pan = pan;
-        LightEvent_Init(&inst->event, RESET_ONESHOT);
+        PreloadedAudio& pl = it->second;
 
         int ch = allocateChannel();
         if (ch < 0) {
-            printf("No free NDSP channels\n");
-            op_free(of);
+            printf("No free NDSP channels for preloaded\n");
             return 0;
         }
-        inst->channel = ch;
 
         ndspChnReset(ch);
         ndspChnSetInterp(ch, NDSP_INTERP_POLYPHASE);
-        ndspChnSetRate(ch, static_cast<unsigned int>(SAMPLE_RATE * inst->pitch));
+        ndspChnSetRate(ch, (u32)(SAMPLE_RATE * pitch));
         ndspChnSetFormat(ch, NDSP_FORMAT_STEREO_PCM16);
+
         float mix[2];
-        volumePanToMix(inst->volume, inst->pan, mix);
+        volumePanToMix(volume, pan, mix);
         ndspChnSetMix(ch, mix);
 
-        inst->audioBuf = static_cast<int16_t*>(linearAlloc(BUF_COUNT * BUF_SIZE));
-        if (!inst->audioBuf) {
-            printf("linearAlloc failed\n");
-            op_free(of);
-            freeChannel(ch);
-            return 0;
-        }
+        // Make AudioInstance to track this
+        auto inst = std::make_unique<AudioInstance>();
+        int id = g_nextId.fetch_add(1);
+        inst->id = id;
+        inst->channel = ch;
+        inst->pitch = pitch;
+        inst->volume = volume;
+        inst->pan = pan;
+        inst->loop = loop;
+        inst->opusFile = nullptr;
+        inst->audioBuf = nullptr;
+        inst->threadId = 0;
+        inst->quitting.store(false);
 
-        for (int i = 0; i < BUF_COUNT; ++i) {
-            inst->waveBufs[i].data_pcm16 = inst->audioBuf + i * BUF_SAMPLES * CHANNELS;
-            inst->waveBufs[i].nsamples = 0;
-            inst->waveBufs[i].status = NDSP_WBUF_DONE; // Mark done to fill first
-            inst->waveBufs[i].next = nullptr;
-        }
+        // Configure one wave buffer
+        ndspWaveBuf* wb = &inst->waveBufs[0];
+        memset(wb, 0, sizeof(ndspWaveBuf));
+        wb->data_pcm16 = pl.audioBuf;
+        wb->nsamples   = pl.numSamples;
+        wb->looping    = loop ? 1 : 0;
+        wb->status     = NDSP_WBUF_DONE;
 
-        // Fill initial buffers
-        for (int i = 0; i < BUF_COUNT; ++i) {
-            if (!fillInstanceBuffer(inst.get(), &inst->waveBufs[i])) {
-                printf("[AudioManager] Failed to fill initial buffer\n");
-                linearFree(inst->audioBuf);
-                op_free(of);
-                freeChannel(ch);
-                return 0;
-            }
-        }
+        // Flush cache BEFORE adding
+        DSP_FlushDataCache(wb->data_pcm16, pl.numSamples * CHANNELS * sizeof(int16_t));
+        ndspChnWaveBufAdd(ch, wb);
 
-        ndspChnWaveBufAdd(ch, &inst->waveBufs[0]);
-
-        inst->threadId = threadCreate(instanceThreadFunc, inst.get(), STACK_SIZE, 0x30, -2, false);
-        if (!inst->threadId) {
-            printf("Failed to create audio thread\n");
-            linearFree(inst->audioBuf);
-            op_free(of);
-            freeChannel(ch);
-            return 0;
-        }
+        printf("[AudioManager] Playing preloaded '%s' (%d samples)\n", path, pl.numSamples);
 
         {
             std::lock_guard<std::mutex> lk(g_instancesMutex);
             g_instances.push_back(std::move(inst));
         }
+
         return id;
+    } 
+
+    // ---- Streaming fallback path (unchanged) ----
+    int err = 0;
+    OggOpusFile* of = op_open_file(path, &err);
+    if (!of) {
+        printf("[AudioManager] Failed to open Opus file '%s' (%s, %d)\n", path, opusStrError(err), err);
+        return 0;
     }
+
+    auto inst = std::make_unique<AudioInstance>();
+    int id = g_nextId.fetch_add(1);
+    inst->id = id;
+    inst->opusFile = of;
+    inst->pitch = pitch;
+    inst->loop = loop;
+    inst->volume = volume;
+    inst->pan = pan;
+    LightEvent_Init(&inst->event, RESET_ONESHOT);
+
+    int ch = allocateChannel();
+    if (ch < 0) {
+        printf("No free NDSP channels\n");
+        op_free(of);
+        return 0;
+    }
+    inst->channel = ch;
+
+    ndspChnReset(ch);
+    ndspChnSetInterp(ch, NDSP_INTERP_POLYPHASE);
+    ndspChnSetRate(ch, static_cast<unsigned int>(SAMPLE_RATE * inst->pitch));
+    ndspChnSetFormat(ch, NDSP_FORMAT_STEREO_PCM16);
+    float mix[2];
+    volumePanToMix(inst->volume, inst->pan, mix);
+    ndspChnSetMix(ch, mix);
+
+    inst->audioBuf = static_cast<int16_t*>(linearAlloc(BUF_COUNT * BUF_SIZE));
+    if (!inst->audioBuf) {
+        printf("linearAlloc failed\n");
+        op_free(of);
+        freeChannel(ch);
+        return 0;
+    }
+
+    for (int i = 0; i < BUF_COUNT; ++i) {
+        inst->waveBufs[i].data_pcm16 = inst->audioBuf + i * BUF_SAMPLES * CHANNELS;
+        inst->waveBufs[i].nsamples = 0;
+        inst->waveBufs[i].status = NDSP_WBUF_DONE;
+        inst->waveBufs[i].next = nullptr;
+    }
+
+    // Fill initial buffers
+    for (int i = 0; i < BUF_COUNT; ++i) {
+        if (!fillInstanceBuffer(inst.get(), &inst->waveBufs[i])) {
+            printf("[AudioManager] Failed to fill initial buffer\n");
+            linearFree(inst->audioBuf);
+            op_free(of);
+            freeChannel(ch);
+            return 0;
+        }
+    }
+
+    ndspChnWaveBufAdd(ch, &inst->waveBufs[0]);
+
+    inst->threadId = threadCreate(instanceThreadFunc, inst.get(), STACK_SIZE, 0x30, -2, false);
+    if (!inst->threadId) {
+        printf("Failed to create audio thread\n");
+        linearFree(inst->audioBuf);
+        op_free(of);
+        freeChannel(ch);
+        return 0;
+    }
+
+    {
+        std::lock_guard<std::mutex> lk(g_instancesMutex);
+        g_instances.push_back(std::move(inst));
+    }
+    return id;
 }
+
 
 bool StopAudio(AudioHandle handle) {
     auto inst = takeInstanceById(handle);
@@ -379,68 +429,33 @@ bool SetPitch(AudioHandle id, float pitch) {
     return true;
 }
 
-bool LoadPreloadAudio(const char* path) {
-    // Load entire opus file into memory for preloading
-    int err;
-    OggOpusFile* of = op_open_file(path, &err);
-    if (!of) {
-        printf("[AudioManager] Failed to preload Opus file '%s' (%s)\n", path, opusStrError(err));
-        return false;
-    }
 
-    ogg_int64_t totalSamples = op_pcm_total(of, -1);
-    if (totalSamples <= 0) {
-        printf("[AudioManager] Invalid total samples in '%s'\n", path);
-        op_free(of);
-        return false;
-    }
-
-    int totalFrames = static_cast<int>(totalSamples);
-    int16_t* buf = (int16_t*)malloc(totalFrames * CHANNELS * sizeof(int16_t));
-    if (!buf) {
-        printf("[AudioManager] malloc failed for preload '%s'\n", path);
-        op_free(of);
-        return false;
-    }
-
-    int readFrames = 0;
-    int offset = 0;
-    while (readFrames < totalFrames) {
-        int r = op_read_stereo(of, buf + offset, totalFrames - readFrames);
-        if (r < 0) {
-            printf("[AudioManager] Error decoding during preload '%s'\n", path);
-            free(buf);
-            op_free(of);
-            return false;
-        }
-        if (r == 0) break;
-        offset += r * CHANNELS;
-        readFrames += r;
-    }
-    op_free(of);
-
-    PreloadedAudio preloaded;
-    preloaded.audioBuf = buf;
-    preloaded.numSamples = totalFrames;
-
-    g_preloadedAudio[path] = std::move(preloaded);
-    printf("[AudioManager] Preloaded '%s' with %d frames\n", path, totalFrames);
-    return true;
-}
 
 void UnloadPreloadAudio(const char* path) {
     auto it = g_preloadedAudio.find(path);
     if (it != g_preloadedAudio.end()) {
-        free(it->second.audioBuf);
+        if (it->second.audioBuf) free(it->second.audioBuf);
         g_preloadedAudio.erase(it);
+        printf("[AudioManager] Unloaded preloaded '%s'\n", path);
     }
 }
+
 
 void CleanupFinishedInstances() {
     std::lock_guard<std::mutex> lk(g_instancesMutex);
     auto it = g_instances.begin();
     while (it != g_instances.end()) {
         AudioInstance* inst = it->get();
+
+        // --- For preloaded sounds ---
+        if (inst->opusFile == nullptr && inst->threadId == 0) {
+            // Check waveBuf[0] status
+            if (inst->waveBufs[0].status == NDSP_WBUF_DONE) {
+                printf("[AudioManager] Preloaded sound %d finished (ch=%d)\n", inst->id, inst->channel);
+                inst->quitting.store(true);
+            }
+        }
+
         if (inst->quitting.load()) {
             if (inst->threadId) {
                 threadJoin(inst->threadId, UINT64_MAX);
@@ -466,5 +481,60 @@ void CleanupFinishedInstances() {
         }
     }
 }
+
+bool PreloadAudio(const char* path) {
+    if (g_preloadedAudio.find(path) != g_preloadedAudio.end())
+        return true; // already loaded
+
+    int err = 0;
+    OggOpusFile* of = op_open_file(path, &err);
+    if (!of) {
+        printf("[AudioManager] Failed to open Opus file '%s' for preload (%s)\n", path, opusStrError(err));
+        return false;
+    }
+
+    // Find length in samples
+    ogg_int64_t pcmTotal = op_pcm_total(of, -1);
+    if (pcmTotal <= 0) {
+        op_free(of);
+        printf("[AudioManager] Invalid Opus length in '%s'\n", path);
+        return false;
+    }
+
+    int numSamples = static_cast<int>(pcmTotal);
+
+    // Allocate in linear memory (DSP safe, 32-byte aligned)
+    int16_t* buf = (int16_t*)linearAlloc(numSamples * CHANNELS * sizeof(int16_t));
+    if (!buf) {
+        op_free(of);
+        printf("[AudioManager] linearAlloc failed for preload\n");
+        return false;
+    }
+
+    // Decode into the buffer
+    int16_t* writePtr = buf;
+    int totalRead = 0;
+    while (totalRead < numSamples) {
+        int frames = op_read_stereo(of, writePtr, numSamples - totalRead);
+        if (frames <= 0) break;
+        totalRead += frames;
+        writePtr += frames * CHANNELS;
+    }
+
+    op_free(of);
+
+    // Flush cache so DSP sees it
+    DSP_FlushDataCache(buf, totalRead * CHANNELS * sizeof(int16_t));
+
+    PreloadedAudio pl;
+    pl.audioBuf = buf;
+    pl.numSamples = totalRead;
+
+    g_preloadedAudio[path] = pl;
+    printf("[AudioManager] Preloaded '%s' (%d samples)\n", path, totalRead);
+    return true;
+}
+
+
 
 } // namespace AudioManager
