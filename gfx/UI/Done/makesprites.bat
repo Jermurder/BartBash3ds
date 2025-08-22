@@ -1,1 +1,0 @@
-tex3ds -i sprites.t3s -o sprites.t3x
