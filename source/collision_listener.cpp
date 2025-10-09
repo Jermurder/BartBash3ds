@@ -32,6 +32,7 @@ void CollisionListener::BeginContact(b2Contact *contact)
                 float randomPitch = pitchDist(gen);
                 if (barts[i].type != BartType::GEM_BART)
                     AudioManager::Play("romfs:/sounds/DOW.opus", randomPitch, false, 1.0f, 0.0f);
+                bartsTouched++;
             }
 
             if (barts[i].type == BartType::GEM_BART && barts[i].touched == false)
@@ -39,6 +40,7 @@ void CollisionListener::BeginContact(b2Contact *contact)
                 gems++;
                 barts[i].dissapearing = true; // Mark for dissapear
                 AudioManager::Play("romfs:/sounds/gem.opus", 1.0f, false, 1.0f, 0.0f);
+                bartsTouched++;
             }
             barts[i].touched = true;
             startcounting = true;

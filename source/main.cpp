@@ -31,10 +31,12 @@ int storephase; // 0 menu 1 copper 2 gold
 int bartphase = 0; // Select, Drop, Dropped
 int multiplier = 1;
 int score;
+int bartsTouched = 1;
 int totalScore;
 int currentRound;
 int *currentRoundPtr = &currentRound;
 int gems;
+
 
 bool playerEnabled = false;
 bool *playerEnabledPtr = &playerEnabled;
@@ -57,8 +59,8 @@ u16 touchX = 200;
 u32 kHeld;
 u32 kUp;
 
-int copperPaintCount = 1;
-int goldPaintCount = 1;
+int copperPaintCount = 0;
+int goldPaintCount = 0;
 
 UIText copperamount;
 UIText goldamount;
@@ -74,6 +76,8 @@ UIButton backButton, buyButton;
 
 bool redrawTop = true;
 bool redrawBottom = true;
+
+bool sceneChangedAfterRounds;
 
 SceneManager scenemanager;
 
@@ -219,6 +223,8 @@ void drawTransition()
         C2D_DrawRectSolid(0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, C2D_Color32(0, 0, 0, static_cast<u8>(alpha * 255)));
     }
 }
+
+
 
 void onStartButtonClick()
 {
@@ -404,6 +410,7 @@ void drawTop(C3D_RenderTarget *target)
         endScore.Draw();
         endGems.SetText("Gems: \n" + std::to_string(gems));
         endGems.Draw();
+        sceneChangedAfterRounds = false;
     }
     else if (scenemanager.currentScene == 5)
     {

@@ -57,6 +57,7 @@ extern int roundtimer;
 extern int maxtime;
 extern int basescore;
 
+
 void drawBarts();
 void initBarts(SpriteManager *spriteManager);
 void addBart(float x, float y, BartType type);
@@ -72,3 +73,4 @@ void counting(int *multiplier, b2Body *player);
 void resetBarts();
 void reInitBarts();
 void paintBart(touchPosition touch, SpriteManager *spriteManager, bool gold, int *copperPaintCount, int *goldPaintCount);
+void pickRandomFirstBart();

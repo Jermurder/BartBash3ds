@@ -11,6 +11,8 @@ extern int score;
 extern int totalScore;
 extern int* currentRoundPtr;
 extern int gems;
+extern int bartsTouched;
+extern bool sceneChangedAfterRounds;
 
 extern bool startcounting;
 extern bool *playerEnabledPtr;

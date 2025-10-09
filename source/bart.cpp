@@ -2,11 +2,22 @@
 #include "bart.h"
 #include "globals.h"
 #include <random>
+#include <vector>
+
 extern SpriteManager spriteManager;
 
 int roundtimer = 200;
 int maxtime = 200;
-int basescore = 105;
+int basescore = 15;
+
+enum class FadePhase
+{
+    None,
+    FadingIn,
+    FadingOut
+};
+FadePhase bartFadePhase = FadePhase::None;
+float bartFading = 0.0f;
 
 extern SceneManager scenemanager;
 
@@ -118,15 +129,12 @@ BartType getRandomBartType()
 {
     static std::mt19937 rng(std::random_device{}());
     static std::vector<BartChance> chances = {
-        {BartType::REGULAR_BART, 0.50f},
-        {BartType::DIRT_BART, 0.10f},
-        {BartType::GOLD_BART, 0.05f},
-        {BartType::COPPER_BART, 0.08f},
-        {BartType::SUPERGOLD_BART, 0.01f},
-        {BartType::SUPERCOPPER_BART, 0.02f},
-        {BartType::GEM_BART, 0.03f},
-        {BartType::FAKECOPPER_BART, 0.10f},
-        {BartType::FAKEGOLD_BART, 0.11f}};
+        {BartType::DIRT_BART, 0.20f},
+        {BartType::GOLD_BART, 0.07f},
+        {BartType::COPPER_BART, 0.10f},
+        {BartType::SUPERGOLD_BART, 0.02f},
+        {BartType::SUPERCOPPER_BART, 0.04f},
+        {BartType::GEM_BART, 0.11f}};
 
     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
     float roll = dist(rng);
@@ -139,7 +147,7 @@ BartType getRandomBartType()
             return c.type;
     }
 
-    return BartType::REGULAR_BART;
+    return BartType::REGULAR_BART; // fallback
 }
 
 void spawnBarts()
@@ -248,10 +256,7 @@ void findBart(touchPosition touch, int *selectedBarts, SpriteManager *spriteMana
                     barts[i].clicked = true;
                     barts[i].type = BartType::BONUS_BART;
                     barts[i].sprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(spriteManager, "barts"), static_cast<int>(barts[i].type));
-                    if (*selectedBarts == 0)
-                    {
-                        firstBart = &barts[i];
-                    }
+                    pickRandomFirstBart();
                     AudioManager::Play("romfs:/sounds/dsgetpow.opus", 1.0f + (*selectedBarts / 15.0f), false, 1.0f, 0.0f);
 
                     (*selectedBarts)++;
@@ -389,33 +394,75 @@ void resetMultiplier(int *multiplier)
 
 void counting(int *multiplier, b2Body *player)
 {
+    static float fadeSpeed = 500.0f; // adjust as needed
+
+    if (*currentRoundPtr >= 3 && sceneChangedAfterRounds == false)
+    {
+        changeScene(&scenemanager, 4);
+        sceneChangedAfterRounds = true;
+    }
+    // --- Fade logic should always run if a fade is active ---
+    if (bartFadePhase != FadePhase::None)
+    {
+        if (bartFadePhase == FadePhase::FadingIn && (*currentRoundPtr < 3))
+        {
+            bartFading += DeltaTime_Get() * fadeSpeed;
+            if (bartFading >= 255.0f)
+            {
+                bartFading = 255.0f;
+                // Do your reset logic here
+                score = (basescore * *multiplier) * bartsTouched;
+                *multiplier = 1;
+                bartsTouched = 1;
+                totalScore += score;
+                player->SetTransform(b2Vec2(PixelsToMeters(190), PixelsToMeters(20)), 0);
+                player->SetType(b2_staticBody);
+                *playerEnabledPtr = false;
+                roundtimer = maxtime;
+                startcounting = false;
+                bartphase = 0;
+                selectedBarts = 0;
+                (*currentRoundPtr) += 1;
+                resetBarts();
+
+                bartFadePhase = FadePhase::FadingOut;
+            }
+        }
+        else if (bartFadePhase == FadePhase::FadingOut)
+        {
+                bartFading -= DeltaTime_Get() * fadeSpeed;
+                if (bartFading <= 0.0f)
+                {
+                    bartFading = 0.0f;
+                    bartFadePhase = FadePhase::None;
+
+                    // Only now, after fade-out, increment round and possibly change scene
+                }
+            
+        }
+
+        // Always draw the fade overlay if in a fade phase
+        C2D_DrawRectSolid(0, 0, 0, 400, 240, C2D_Color32(0, 0, 0, (u8)bartFading));
+        return; // Don't run the rest of the logic while fading
+    }
+
+    // --- Only start fade if counting and phase are correct ---
     if (startcounting && bartphase == 2)
     {
         roundtimer -= DeltaTime_Get();
         if (roundtimer <= 0)
         {
-            score = basescore * *multiplier;
-            totalScore += score;
-            *multiplier = 1;
-            player->SetTransform(b2Vec2(PixelsToMeters(190), PixelsToMeters(20)), 0);
-            player->SetType(b2_staticBody);
-            *playerEnabledPtr = false;
-            roundtimer = maxtime;  // Reset timer for next round
-            startcounting = false; // Stop counting until next round
-            bartphase = 0;
-            selectedBarts = 0;
-            resetBarts();
-
-            (*currentRoundPtr) += 1;
-            if (*currentRoundPtr >= 3)
+            if (bartFadePhase == FadePhase::None)
             {
-                changeScene(&scenemanager, 4);
+                bartFadePhase = FadePhase::FadingIn;
+                bartFading = 0.0f;
             }
         }
     }
-    else
+    else if (bartFadePhase == FadePhase::None)
     {
         roundtimer = maxtime;
+        bartFading = 0.0f;
     }
 }
 
@@ -477,5 +524,29 @@ void reInitBarts()
         {
             reinitBart(&barts[i], &spriteManager);
         }
+    }
+}
+
+void pickRandomFirstBart()
+{
+    std::vector<Bart*> selectedBartsVec;
+    for (int i = 0; i < 40; ++i)
+    {
+        if (barts[i].initialized && barts[i].clicked && barts[i].type == BartType::BONUS_BART)
+        {
+            selectedBartsVec.push_back(&barts[i]);
+        }
+    }
+
+    if (!selectedBartsVec.empty())
+    {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(0, selectedBartsVec.size() - 1);
+        firstBart = selectedBartsVec[dist(gen)];
+    }
+    else
+    {
+        firstBart = nullptr; // No selected Bart
     }
 }
