@@ -33,3 +33,6 @@ To build the project you need the devkitpro toolchain, and also libopus and the 
 You should be able to just navigate to the projects root folder and run make, if you have issues, just follow whatever error you get.
 
 PS: if the game crashes blame the low budget, not me.
+![togif](https://github.com/user-attachments/assets/18f04c49-b80b-4846-90ab-c8ac96ee534f)
+
+
