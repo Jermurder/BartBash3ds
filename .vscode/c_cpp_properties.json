@@ -1,22 +1,20 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "Linux",
             "includePath": [
-                "${default}",
-                "${workspaceFolder}/source",
-                "C:/devKitPro/libctru/include/**",
-                "C:/devKitPro/libcwav/**",
-                "C:/devkitPro/portlibs/3ds/**"
+                "${workspaceFolder}/**",
+                "/opt/devkitpro/devkitARM/arm-none-eabi/include/**",
+                "/opt/devkitpro/libctru/include/**",
+                "/opt/devkitpro/portlibs/3ds/include/**"
             ],
             "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
+                "__3DS__"
             ],
-            "compilerPath": "C:/devKitPro/devkitARM/bin/arm-none-eabi-gcc.exe",
-            "cStandard": "c11",
-            "cppStandard": "c++17"
+            "compilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4

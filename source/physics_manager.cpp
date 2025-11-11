@@ -20,7 +20,7 @@ void PhysicsManager_Init()
 
     // Ground
     b2BodyDef groundDef;
-    groundDef.position.Set(PixelsToMeters(200), PixelsToMeters(240)); // center bottom
+    groundDef.position.Set(PixelsToMeters(200), PixelsToMeters(230)); // center bottom
     b2Body *ground = world->CreateBody(&groundDef);
 
     b2PolygonShape groundShape;
@@ -29,7 +29,7 @@ void PhysicsManager_Init()
 
     // Left wall
     b2BodyDef leftWallDef;
-    leftWallDef.position.Set(PixelsToMeters(30), PixelsToMeters(120)); // 40px from left, vertically centered
+    leftWallDef.position.Set(PixelsToMeters(20), PixelsToMeters(120)); // 40px from left, vertically centered
     b2Body *leftWall = world->CreateBody(&leftWallDef);
 
     b2PolygonShape leftWallShape;
@@ -38,7 +38,7 @@ void PhysicsManager_Init()
 
     // Right wall
     b2BodyDef rightWallDef;
-    rightWallDef.position.Set(PixelsToMeters(320 - 30), PixelsToMeters(120)); // 40px from right, vertically centered
+    rightWallDef.position.Set(PixelsToMeters(320 - 50), PixelsToMeters(120)); // 40px from right, vertically centered
     b2Body *rightWall = world->CreateBody(&rightWallDef);
 
     b2PolygonShape rightWallShape;

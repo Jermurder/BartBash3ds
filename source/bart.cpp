@@ -159,8 +159,8 @@ void spawnBarts()
     // Random number generator setup
     static std::random_device rd;                   // Seed source (once)
     static std::mt19937 gen(rd());                  // Mersenne Twister RNG
-    std::uniform_int_distribution<> distX(40, 279); // 240 + 40 - 1 = 279
-    std::uniform_int_distribution<> distY(80, 219); // 140 + 80 - 1 = 219
+    std::uniform_int_distribution<> distX(40, 260); // 240 + 40 - 1 = 279
+    std::uniform_int_distribution<> distY(80, 200); // 140 + 80 - 1 = 219
 
     for (int i = 0; i < count; i++)
     {
@@ -442,6 +442,7 @@ void counting(int *multiplier, b2Body *player)
         }
 
         // Always draw the fade overlay if in a fade phase
+        
         C2D_DrawRectSolid(0, 0, 0, 400, 240, C2D_Color32(0, 0, 0, (u8)bartFading));
         return; // Don't run the rest of the logic while fading
     }

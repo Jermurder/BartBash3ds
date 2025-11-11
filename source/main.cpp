@@ -1,5 +1,6 @@
 #include "include.h"
 #include <malloc.h>
+#include <stdio.h>
 
 constexpr int SCREEN_WIDTH = 400;
 constexpr int SCREEN_HEIGHT = 240;
@@ -37,7 +38,14 @@ int currentRound;
 int *currentRoundPtr = &currentRound;
 int gems;
 
-
+int handlePos = 100;
+int handleValue = 50;
+C2D_Sprite handleSprite;
+C2D_Sprite railSprite;
+C2D_Sprite dropButton;
+bool pressingDropButton;
+bool draggingHandle;
+bool lastTouchOnButton;
 bool playerEnabled = false;
 bool *playerEnabledPtr = &playerEnabled;
 
@@ -58,6 +66,8 @@ u32 kDown;
 u16 touchX = 200;
 u32 kHeld;
 u32 kUp;
+
+C2D_Sprite cursor;
 
 int copperPaintCount = 0;
 int goldPaintCount = 0;
@@ -83,11 +93,11 @@ SceneManager scenemanager;
 
 bool startcounting;
 
-// Store font globally for reuse
 static C2D_Font font = nullptr;
 
-// Add a global variable to store the current audio handle
 AudioManager::AudioHandle currentAudioHandle = 0;
+
+const char *SAVE_PATH = "sdmc:/bartbash_save.dat";
 
 void initSOC()
 {
@@ -104,14 +114,44 @@ void initSOC()
         svcBreak(USERBREAK_PANIC);
     }
 
-    // redirect stdout/printf to 3dslink
     link3dsStdio();
+}
+
+// Save gems, copperPaintCount, and goldPaintCount
+void saveProgressToFile(int gems, int copperPaintCount, int goldPaintCount)
+{
+    FILE *f = fopen(SAVE_PATH, "wb");
+    if (f)
+    {
+        fwrite(&gems, sizeof(int), 1, f);
+        fwrite(&copperPaintCount, sizeof(int), 1, f);
+        fwrite(&goldPaintCount, sizeof(int), 1, f);
+        fclose(f);
+    }
+}
+
+// Load gems, copperPaintCount, and goldPaintCount
+void loadProgressFromFile(int *gems, int *copperPaintCount, int *goldPaintCount)
+{
+    FILE *f = fopen(SAVE_PATH, "rb");
+    int g = 0, c = 0, o = 0;
+    if (f)
+    {
+        fread(&g, sizeof(int), 1, f);
+        fread(&c, sizeof(int), 1, f);
+        fread(&o, sizeof(int), 1, f);
+        fclose(f);
+    }
+    *gems = g;
+    *copperPaintCount = c;
+    *goldPaintCount = o;
 }
 
 void continuegame()
 {
     changeScene(&scenemanager, 1);
-    if (currentAudioHandle) {
+    if (currentAudioHandle)
+    {
         AudioManager::StopAudio(currentAudioHandle);
     }
     currentAudioHandle = AudioManager::Play("romfs:/sounds/bashs.opus", 1.0f, false, 1.0f, 0.0f);
@@ -149,19 +189,17 @@ void texts()
     font = C2D_FontLoad("romfs:/fonts/Helvetica.bcfnt");
     if (!font)
     {
-        // Handle font loading failure here (log or fallback)
         return;
     }
 
-    // Initialize labels directly on UIButton
     startButton.label = new UIText;
     startButton.label->Init("Start", font, startButton.x + 85, startButton.y + 50, 1.0f, C2D_Color32(0, 0, 0, 255));
 
     howtoplayButton.label = new UIText;
     howtoplayButton.label->Init("How to play", font, howtoplayButton.x + 43, howtoplayButton.y + 50, 1.0f, C2D_Color32(0, 0, 0, 255));
-    Multiplier.Init("Multiplier: " + std::to_string(multiplier) + "x", font, 150, 142, 0.5f, C2D_Color32(255, 255, 255, 255));
-    scoreText.Init("Score: " + std::to_string(score), font, 23, 142, 0.5f, C2D_Color32(255, 255, 255, 255));
-    selectedText.Init("Selected: " + std::to_string(selectedBarts) + "/6", font, 288, 142, 0.5f, C2D_Color32(255, 255, 255, 255));
+    Multiplier.Init("Multiplier: " + std::to_string(multiplier) + "x", font, 290, 120, 0.6f, C2D_Color32(255, 255, 255, 255));
+    scoreText.Init("Score: " + std::to_string(score), font, 290, 45, 0.6f, C2D_Color32(255, 255, 255, 255));
+    selectedText.Init("Selected: " + std::to_string(selectedBarts) + "/6", font, 290, 196, 0.6f, C2D_Color32(255, 255, 255, 255));
 
     howtoplayText.Init("A to exit", font, 60, 110, 2.0f, C2D_Color32(255, 255, 255, 255));
     endScore.Init("Score: \n" + std::to_string(totalScore), font, 100, 130, 1.0f, C2D_Color32(0, 0, 255, 255));
@@ -187,7 +225,6 @@ void texts()
 
     backToEnd.label = new UIText;
     backToEnd.label->Init("Back", font, backToEnd.x + 12, backToEnd.y + 17, 0.5f, C2D_Color32(255, 255, 255, 255));
-    
 }
 
 void drawTransition()
@@ -224,12 +261,11 @@ void drawTransition()
     }
 }
 
-
-
 void onStartButtonClick()
 {
     changeScene(&scenemanager, 1);
-    if (currentAudioHandle) {
+    if (currentAudioHandle)
+    {
         AudioManager::StopAudio(currentAudioHandle);
     }
     currentAudioHandle = AudioManager::Play("romfs:/sounds/bashs.opus", 1.0f, false, 1.0f, 0.0f);
@@ -287,11 +323,14 @@ void buyPaint()
             AudioManager::Play("romfs:/sounds/cash.opus", 1.0f, false, 1.0f, 0.0f);
         }
     }
+    saveProgressToFile(gems, copperPaintCount, goldPaintCount);
 }
 
 void goToEnd()
 {
+
     changeScene(&scenemanager, 4);
+    saveProgressToFile(gems, copperPaintCount, goldPaintCount);
 }
 
 void loadUI()
@@ -303,8 +342,6 @@ void loadUI()
     UIButton_Init(&howtoplayButton, SpriteManager_GetSheet(&spriteManager, "UI2"), 2, (320 / 2) - 110, 130, 220, 80, NULL, false, true);
     UIButton_SetHoverSprite(&howtoplayButton, 1);
     UIButton_SetPressedSprite(&howtoplayButton, 0);
-
-
 
     UIButton_Init(&itemsButton, NULL, -1, 10, 5, 50, 30, C2D_Color32(255, 0, 0, 255), true, false);
 
@@ -366,23 +403,77 @@ void drawTop(C3D_RenderTarget *target)
     }
     else if (scenemanager.currentScene == 1)
     {
-        C2D_DrawSprite(&mainmenuSprites[2]);
-        C2D_Sprite display;
-        C2D_SpriteFromSheet(&display, SpriteManager_GetSheet(&spriteManager, "UI4"), 0);
+        C2D_Sprite background;
+        C2D_SpriteFromSheet(&background, SpriteManager_GetSheet(&spriteManager, "newui"), 6);
+        C2D_SpriteSetPos(&background, 0, 0);
+        C2D_DrawSprite(&background);
+        drawBarts();
 
-        C2D_SpriteSetPos(&display, 7, 100);
-        C2D_DrawSprite(&display);
-        scoreText.SetText("Score: " + std::to_string(totalScore));
+        player = PhysicsManager_GetPlayer();
+        if (player && playerEnabled) // Only draw player if it exists and is enabled
+        {
+            b2Vec2 pos = player->GetPosition();
+            float px = MetersToPixels(pos.x);
+            float py = MetersToPixels(pos.y);
+            C2D_Sprite playerSprite;
+
+            C2D_SpriteFromSheet(&playerSprite, SpriteManager_GetSheet(&spriteManager, "barts"), 2);
+            C2D_SpriteSetPos(&playerSprite, px, py);
+            C2D_SpriteSetRotation(&playerSprite, player->GetAngle());
+            C2D_SpriteSetCenter(&playerSprite, 0.5f, 0.5f);
+            C2D_DrawSprite(&playerSprite);
+        }
+
+        if (bartphase == 0)
+        {
+            if (player)
+            {
+                player->SetTransform(b2Vec2(PixelsToMeters(190), PixelsToMeters(20)), 0);
+                player->SetType(b2_staticBody);
+            }
+            if (kDown & KEY_TOUCH)
+            {
+                findBart(touch, &selectedBarts, &spriteManager, itemsButton.toggled);
+            }
+
+            if (itemsButton.toggled)
+            {
+                if (copperPaint.toggled && copperPaintCount > 0)
+                {
+                    paintBart(touch, &spriteManager, false, &copperPaintCount, &goldPaintCount);
+                }
+                else if (goldPaint.toggled && goldPaintCount > 0)
+                {
+                    paintBart(touch, &spriteManager, true, &copperPaintCount, &goldPaintCount);
+                }
+            }
+            if (kDown & KEY_A && selectedBarts > 0)
+            {
+                bartphase = 1;
+                PhysicsManager_SpawnPlayer(190, 20);
+                playerEnabled = true;
+                deinitBart(firstBart);
+            }
+
+            if (touch.px != 0 && touch.py != 0)
+            {
+                C2D_SpriteSetPos(&cursor, touch.px, touch.py);
+            }
+            C2D_DrawSprite(&cursor);
+        }
+        else if (bartphase == 1)
+        {
+            player->SetType(b2_staticBody);
+            player->SetTransform(b2Vec2(PixelsToMeters(handleValue), PixelsToMeters(30)), 0);
+        }
+
+        scoreText.SetText("Score: \n" + std::to_string(totalScore));
         scoreText.Draw();
 
-        C2D_SpriteSetPos(&display, 139, 100);
-        C2D_DrawSprite(&display);
-        Multiplier.SetText("Multiplier: " + std::to_string(multiplier) + "x");
+        Multiplier.SetText("Multiplier: \n" + std::to_string(multiplier) + "x");
         Multiplier.Draw();
 
-        C2D_SpriteSetPos(&display, 272, 100);
-        C2D_DrawSprite(&display);
-        selectedText.SetText("Selected: " + std::to_string(selectedBarts) + "/6");
+        selectedText.SetText("Selected: \n" + std::to_string(selectedBarts) + "/6");
         selectedText.Draw();
     }
     else if (scenemanager.currentScene == 2)
@@ -443,7 +534,7 @@ void drawTop(C3D_RenderTarget *target)
             C2D_Sprite display;
             C2D_SpriteFromSheet(&display, SpriteManager_GetSheet(&spriteManager, "UI4"), 0);
             C2D_SpriteSetCenter(&display, 0.5f, 0.5f);
-            C2D_SpriteSetPos(&display, SCREEN_WIDTH / 2  + 125, 50);
+            C2D_SpriteSetPos(&display, SCREEN_WIDTH / 2 + 125, 50);
             C2D_DrawSprite(&display);
             storeGems.x = 290;
             storeGems.y = 55;
@@ -466,7 +557,7 @@ void drawTop(C3D_RenderTarget *target)
             C2D_Sprite display;
             C2D_SpriteFromSheet(&display, SpriteManager_GetSheet(&spriteManager, "UI4"), 0);
             C2D_SpriteSetCenter(&display, 0.5f, 0.5f);
-            C2D_SpriteSetPos(&display, SCREEN_WIDTH / 2  + 125, 50);
+            C2D_SpriteSetPos(&display, SCREEN_WIDTH / 2 + 125, 50);
             C2D_DrawSprite(&display);
             storeGems.x = 290;
             storeGems.y = 55;
@@ -490,26 +581,7 @@ void drawBottom(C3D_RenderTarget *target)
     }
     else if (scenemanager.currentScene == 1)
     {
-        C2D_Sprite background;
-        C2D_SpriteFromSheet(&background, SpriteManager_GetSheet(&spriteManager, "UI3"), 1);
-        C2D_SpriteSetPos(&background, 28, 0);
-        C2D_DrawSprite(&background);
-        drawBarts();
-
-        player = PhysicsManager_GetPlayer();
-        if (player && playerEnabled) // Only draw player if it exists and is enabled
-        {
-            b2Vec2 pos = player->GetPosition();
-            float px = MetersToPixels(pos.x);
-            float py = MetersToPixels(pos.y);
-            C2D_Sprite playerSprite;
-
-            C2D_SpriteFromSheet(&playerSprite, SpriteManager_GetSheet(&spriteManager, "barts"), 2);
-            C2D_SpriteSetPos(&playerSprite, px, py);
-            C2D_SpriteSetRotation(&playerSprite, player->GetAngle());
-            C2D_SpriteSetCenter(&playerSprite, 0.5f, 0.5f);
-            C2D_DrawSprite(&playerSprite);
-        }
+        C2D_DrawSprite(&mainmenuSprites[2]);
         UIButton_Update(&itemsButton, touch);
         UIButton_Draw(&itemsButton);
         if (itemsButton.toggled)
@@ -531,52 +603,94 @@ void drawBottom(C3D_RenderTarget *target)
             goldamount.SetText("(" + std::to_string(goldPaintCount) + ")");
             goldamount.Draw();
         }
-        if (bartphase == 0)
+
+        if (bartphase == 1)
         {
-            if (player)
+            C2D_SpriteFromSheet(&handleSprite, SpriteManager_GetSheet(&spriteManager, "newui"), 3);
+            C2D_SpriteFromSheet(&railSprite, SpriteManager_GetSheet(&spriteManager, "newui"), 5);
+            C2D_SpriteSetCenter(&handleSprite, 0.5, 0.5);
+            C2D_SpriteSetCenter(&railSprite, 0.5, 0.5);
+            C2D_SpriteSetPos(&railSprite, 320 / 2, SCREEN_HEIGHT / 2);
+            C2D_DrawSprite(&railSprite);
+
+            // Handle dragging logic
+            int handleMin = 30;
+            int handleMax = 290;
+            int handleY = SCREEN_HEIGHT / 2;
+            int handleRadiusX = 34;
+            int handleRadiusY = 18;
+
+            // Check if touch is on handle
+            bool touchOnHandle = (touch.px >= handlePos - handleRadiusX && touch.px <= handlePos + handleRadiusX &&
+                                  touch.py >= handleY - handleRadiusY && touch.py <= handleY + handleRadiusY);
+
+            handleSprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(&spriteManager, "newui"), 3);
+
+            // Start dragging
+            if (kDown & KEY_TOUCH && touchOnHandle)
+                draggingHandle = true;
+
+            // Dragging
+            if (draggingHandle && (kHeld & KEY_TOUCH))
             {
-                player->SetTransform(b2Vec2(PixelsToMeters(190), PixelsToMeters(20)), 0);
-                player->SetType(b2_staticBody);
-            }
-            if (kDown & KEY_TOUCH)
-            {
-                findBart(touch, &selectedBarts, &spriteManager, itemsButton.toggled);
+                handlePos = touch.px;
+                if (handlePos < handleMin)
+                    handlePos = handleMin;
+                if (handlePos > handleMax)
+                    handlePos = handleMax;
+                handleSprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(&spriteManager, "newui"), 4);
             }
 
-            if (itemsButton.toggled)
-            {
-                if (copperPaint.toggled && copperPaintCount > 0)
-                {
-                    paintBart(touch, &spriteManager, false, &copperPaintCount, &goldPaintCount);
-                }
-                else if (goldPaint.toggled && goldPaintCount > 0)
-                {
-                    paintBart(touch, &spriteManager, true, &copperPaintCount, &goldPaintCount);
-                }
-            }
-            if (kDown & KEY_A && selectedBarts > 0)
-            {
-                bartphase = 1;
-                PhysicsManager_SpawnPlayer(190, 20);
-                playerEnabled = true;
-                deinitBart(firstBart);
-            }
-        }
-        else if (bartphase == 1)
-        {
-            player->SetType(b2_staticBody);
-            if (kHeld & KEY_TOUCH && touch.px > 30 && touch.px < 290)
-            {
-                touchX = touch.px;
-            }
-            player->SetTransform(b2Vec2(PixelsToMeters(touchX), PixelsToMeters(20)), 0);
+            // Stop dragging
+            if (draggingHandle && (kUp & KEY_TOUCH))
+                draggingHandle = false;
 
-            if (kDown & KEY_A)
+            float t = float(handlePos - handleMin) / float(handleMax - handleMin);
+            handleValue = int(t * 200 + 45);
+
+            C2D_SpriteSetPos(&handleSprite, handlePos, handleY);
+
+            C2D_DrawSprite(&handleSprite);
+
+            int buttonWidth = 49;
+            int buttonHeight = 32;
+            int buttonX = 160;
+            int buttonY = 200;
+
+            C2D_SpriteFromSheet(&dropButton, SpriteManager_GetSheet(&spriteManager, "newui"), 1);
+            C2D_SpriteSetCenter(&dropButton, 0.5f, 0.5f);
+            C2D_SpriteSetPos(&dropButton, buttonX, buttonY);
+            bool touchOnButton = (touch.px >= buttonX - buttonWidth && touch.px <= buttonX + buttonWidth &&
+                                  touch.py >= buttonY - buttonHeight && touch.py <= buttonY + buttonHeight);
+
+            if (kDown & KEY_TOUCH && touchOnButton)
+            {
+                pressingDropButton = true;
+            }
+            if (kUp & KEY_TOUCH && !lastTouchOnButton)
+            {
+                pressingDropButton = false;
+            }
+            if (kUp & KEY_TOUCH && lastTouchOnButton && pressingDropButton)
             {
                 player->SetType(b2_dynamicBody);
                 bartphase = 2;
                 applyRandomUpwardForce(player);
+                pressingDropButton = false;
             }
+            lastTouchOnButton = touchOnButton;
+            if (pressingDropButton == true)
+            {
+                dropButton.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(&spriteManager, "newui"), 2);
+            }
+            else
+            {
+                dropButton.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(&spriteManager, "newui"), 1);
+            }
+            C2D_DrawSprite(&dropButton);
+            UIText dropButtonText;
+            dropButtonText.Init("DROP!", font, buttonX - 40, buttonY + 10, 1.0f, C2D_Color32(255, 255, 255, 255));
+            dropButtonText.Draw();
         }
     }
     else if (scenemanager.currentScene == 2)
@@ -717,10 +831,14 @@ int main(int argc, char *argv[])
     SpriteManager_Load(&spriteManager, "barts", "romfs:/gfx/barts.t3x");
     SpriteManager_Load(&spriteManager, "UI4", "romfs:/gfx/UI4.t3x");
     SpriteManager_Load(&spriteManager, "paint", "romfs:/gfx/paint.t3x");
+    SpriteManager_Load(&spriteManager, "newui", "romfs:/gfx/newUI.t3x");
+    C2D_SpriteFromSheet(&cursor, SpriteManager_GetSheet(&spriteManager, "newui"), 7);
 
     loadUI();
     texts();
     loadSprites();
+
+    loadProgressFromFile(&gems, &copperPaintCount, &goldPaintCount);
 
     PhysicsManager_Init();
     spawnBarts();
@@ -753,6 +871,7 @@ int main(int argc, char *argv[])
         drawTransition();
         drawBottom(bottom);
         drawTransition();
+        C2D_SceneBegin(top);
         counting(&multiplier, player);
         C3D_FrameEnd(0);
     }
@@ -777,6 +896,7 @@ int main(int argc, char *argv[])
         C2D_FontFree(font);
         font = nullptr;
     }
+    saveProgressToFile(gems, copperPaintCount, goldPaintCount);
     C2D_Fini();
     AudioManager::Exit();
     C3D_Fini();
