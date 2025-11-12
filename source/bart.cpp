@@ -114,6 +114,7 @@ void addBart(float x, float y, BartType type)
             barts[i].touched = false;
             barts[i].clicked = false;
             barts[i].initialized = true;
+            barts[i].opacity = 1.0f; // <-- Reset opacity to fully visible
             return;
         }
     }
@@ -317,6 +318,7 @@ void deinitBart(Bart *bart)
 void reinitBart(Bart *bart, SpriteManager *spriteManager)
 {
     bart->initialized = true;
+    bart->opacity = 1.0f; // <-- Reset opacity to fully visible
     // Restore Box2D body
     b2World *world = PhysicsManager_GetWorld();
     b2BodyDef def;
