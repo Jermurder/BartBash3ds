@@ -25,6 +25,14 @@ int nextPhase = 0; // new phase to switch to after fade out
 
 SpriteManager spriteManager;
 
+float cursorX = 200;
+float cursorY = 120;
+float cursorSpeed = 1.5f;
+
+int bartTouchIndex = -1;
+bool bartTouchActive = false;
+
+
 int gamestate = 0; // 0 = menu, 1 = game
 int selectedBarts;
 int storephase; // 0 menu 1 copper 2 gold
@@ -43,6 +51,7 @@ int handleValue = 50;
 C2D_Sprite handleSprite;
 C2D_Sprite railSprite;
 C2D_Sprite dropButton;
+C2D_Sprite TouchPadSprite;
 bool pressingDropButton;
 bool draggingHandle;
 bool lastTouchOnButton;
@@ -433,7 +442,55 @@ void drawTop(C3D_RenderTarget *target)
             }
             if (kDown & KEY_TOUCH)
             {
-                findBart(touch, &selectedBarts, &spriteManager, itemsButton.toggled);
+                // Find which Bart is under the cursor/touch
+                bartTouchIndex = -1;
+                b2Vec2 testPoint = b2Vec2(PixelsToMeters(cursorX), PixelsToMeters(cursorY));
+                for (int i = 0; i < 40; ++i)
+                {
+                    if (!barts[i].initialized || !barts[i].body)
+                        continue;
+                    for (b2Fixture *f = barts[i].body->GetFixtureList(); f; f = f->GetNext())
+                    {
+                        if (f->TestPoint(testPoint))
+                        {
+                            bartTouchIndex = i;
+                            bartTouchActive = true;
+                            break;
+                        }
+                    }
+                    if (bartTouchIndex != -1)
+                        break;
+                }
+            }
+
+            if (kUp & KEY_TOUCH && bartTouchActive && bartTouchIndex != -1)
+            {
+                b2Vec2 testPoint = b2Vec2(PixelsToMeters(cursorX), PixelsToMeters(cursorY));
+                bool stillOnBart = false;
+                for (b2Fixture *f = barts[bartTouchIndex].body->GetFixtureList(); f; f = f->GetNext())
+                {
+                    if (f->TestPoint(testPoint))
+                    {
+                        stillOnBart = true;
+                        break;
+                    }
+                }
+                if (stillOnBart)
+                {
+                    if (itemsButton.toggled)
+                    {
+                        if (copperPaint.toggled && copperPaintCount > 0)
+                            paintBartOnIndex(bartTouchIndex, false, &copperPaintCount, &goldPaintCount, &spriteManager);
+                        else if (goldPaint.toggled && goldPaintCount > 0)
+                            paintBartOnIndex(bartTouchIndex, true, &copperPaintCount, &goldPaintCount, &spriteManager);
+                    }
+                    else
+                    {
+                        findBartOnIndex(bartTouchIndex, &selectedBarts, &spriteManager, itemsButton.toggled);
+                    }
+                }
+                bartTouchActive = false;
+                bartTouchIndex = -1;
             }
 
             if (itemsButton.toggled)
@@ -457,7 +514,11 @@ void drawTop(C3D_RenderTarget *target)
 
             if (touch.px != 0 && touch.py != 0)
             {
-                C2D_SpriteSetPos(&cursor, touch.px, touch.py);
+                C2D_SpriteSetPos(&cursor, cursorX, cursorY);
+            }
+            else
+            {
+                C2D_SpriteSetPos(&cursor, cursorX, cursorY);
             }
             C2D_DrawSprite(&cursor);
         }
@@ -606,23 +667,23 @@ void drawBottom(C3D_RenderTarget *target)
 
         if (bartphase == 1)
         {
+            C2D_DrawSprite(&mainmenuSprites[2]);
             C2D_SpriteFromSheet(&handleSprite, SpriteManager_GetSheet(&spriteManager, "newui"), 3);
             C2D_SpriteFromSheet(&railSprite, SpriteManager_GetSheet(&spriteManager, "newui"), 5);
-            C2D_SpriteSetCenter(&handleSprite, 0.5, 0.5);
             C2D_SpriteSetCenter(&railSprite, 0.5, 0.5);
             C2D_SpriteSetPos(&railSprite, 320 / 2, SCREEN_HEIGHT / 2);
             C2D_DrawSprite(&railSprite);
 
             // Handle dragging logic
-            int handleMin = 30;
-            int handleMax = 290;
-            int handleY = SCREEN_HEIGHT / 2;
-            int handleRadiusX = 34;
-            int handleRadiusY = 18;
+            int handleMin = 2;
+            int handleMax = 272;
+            int handleY = SCREEN_HEIGHT / 2 - 18;
+            int handleRadiusX = 67; //67 36
+            int handleRadiusY = 36;
 
             // Check if touch is on handle
-            bool touchOnHandle = (touch.px >= handlePos - handleRadiusX && touch.px <= handlePos + handleRadiusX &&
-                                  touch.py >= handleY - handleRadiusY && touch.py <= handleY + handleRadiusY);
+            bool touchOnHandle = (touch.px >= handlePos && touch.px <= handlePos + handleRadiusX &&
+                                  touch.py >= handleY && touch.py <= handleY + handleRadiusY);
 
             handleSprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(&spriteManager, "newui"), 3);
 
@@ -633,7 +694,7 @@ void drawBottom(C3D_RenderTarget *target)
             // Dragging
             if (draggingHandle && (kHeld & KEY_TOUCH))
             {
-                handlePos = touch.px;
+                handlePos = touch.px -34;
                 if (handlePos < handleMin)
                     handlePos = handleMin;
                 if (handlePos > handleMax)
@@ -652,16 +713,15 @@ void drawBottom(C3D_RenderTarget *target)
 
             C2D_DrawSprite(&handleSprite);
 
-            int buttonWidth = 49;
-            int buttonHeight = 32;
-            int buttonX = 160;
-            int buttonY = 200;
+            int buttonWidth = 97;
+            int buttonHeight = 63;
+            int buttonX = 160 - int(buttonWidth / 2);
+            int buttonY = 200 - int (buttonHeight / 2);
 
             C2D_SpriteFromSheet(&dropButton, SpriteManager_GetSheet(&spriteManager, "newui"), 1);
-            C2D_SpriteSetCenter(&dropButton, 0.5f, 0.5f);
             C2D_SpriteSetPos(&dropButton, buttonX, buttonY);
-            bool touchOnButton = (touch.px >= buttonX - buttonWidth && touch.px <= buttonX + buttonWidth &&
-                                  touch.py >= buttonY - buttonHeight && touch.py <= buttonY + buttonHeight);
+            bool touchOnButton = (touch.px >= buttonX && touch.px <= buttonX + buttonWidth &&
+                                  touch.py >= buttonY && touch.py <= buttonY + buttonHeight);
 
             if (kDown & KEY_TOUCH && touchOnButton)
             {
@@ -689,8 +749,13 @@ void drawBottom(C3D_RenderTarget *target)
             }
             C2D_DrawSprite(&dropButton);
             UIText dropButtonText;
-            dropButtonText.Init("DROP!", font, buttonX - 40, buttonY + 10, 1.0f, C2D_Color32(255, 255, 255, 255));
+            dropButtonText.Init("DROP!", font, buttonX + 9, buttonY + 42, 1.0f, C2D_Color32(255, 255, 255, 255));
             dropButtonText.Draw();
+        }
+        else {
+        
+            C2D_SpriteFromSheet(&TouchPadSprite, SpriteManager_GetSheet(&spriteManager, "newui"), 8);
+            C2D_DrawSprite(&TouchPadSprite);
         }
     }
     else if (scenemanager.currentScene == 2)
@@ -809,6 +874,41 @@ void updateBarts(float deltaTime, SpriteManager *spriteManager)
     }
 }
 
+
+void updateCursorFromTouch()
+{
+    static bool isTouching = false;
+    static int lastTouchX = 0;
+    static int lastTouchY = 0;
+
+    if (kDown & KEY_TOUCH)
+    {
+        isTouching = true;
+        lastTouchX = touch.px;
+        lastTouchY = touch.py;
+    }
+
+    if (kHeld & KEY_TOUCH && isTouching)
+    {
+        int dx = touch.px - lastTouchX;
+        int dy = touch.py - lastTouchY;
+        cursorX += dx * cursorSpeed;
+        cursorY += dy * cursorSpeed;
+        if (cursorX < 0) cursorX = 0;
+        if (cursorX > SCREEN_WIDTH) cursorX = SCREEN_WIDTH;
+        if (cursorY < 0) cursorY = 0;
+        if (cursorY > SCREEN_HEIGHT) cursorY = SCREEN_HEIGHT;
+        lastTouchX = touch.px;
+        lastTouchY = touch.py;
+    }
+
+    if (kUp & KEY_TOUCH)
+    {
+        isTouching = false;
+    }
+}
+
+
 int main(int argc, char *argv[])
 {
     initSOC();
@@ -863,6 +963,7 @@ int main(int argc, char *argv[])
         if (kDown & KEY_START)
             break;
         hidTouchRead(&touch);
+        updateCursorFromTouch();
         PhysicsManager_Update(1.0f / 60.0f);
         updateBartsAfterPhysics();
         AudioManager::CleanupFinishedInstances();

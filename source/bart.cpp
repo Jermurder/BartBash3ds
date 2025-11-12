@@ -239,9 +239,9 @@ void updateBartsAfterPhysics()
     }
 }
 
-void findBart(touchPosition touch, int *selectedBarts, SpriteManager *spriteManager, bool itemsButtonToggled)
+void findBart(int touchX, int touchY, int *selectedBarts, SpriteManager *spriteManager, bool itemsButtonToggled)
 {
-    b2Vec2 testPoint = b2Vec2(PixelsToMeters(touch.px), PixelsToMeters(touch.py));
+    b2Vec2 testPoint = b2Vec2(PixelsToMeters(touchX), PixelsToMeters(touchY));
     for (int i = 0; i < 40; ++i)
     {
         if (!barts[i].initialized || !barts[i].body || !(barts[i].type == BartType::REGULAR_BART || barts[i].type == BartType::BONUS_BART))
@@ -326,7 +326,7 @@ void reinitBart(Bart *bart, SpriteManager *spriteManager)
     bart->body = world->CreateBody(&def);
 
     b2PolygonShape shape;
-    shape.SetAsBox(PixelsToMeters(7), PixelsToMeters(15));
+    shape.SetAsBox(PixelsToMeters(8), PixelsToMeters(17));
     b2FixtureDef fix;
     fix.shape = &shape;
     fix.density = 0.75f;
@@ -549,5 +549,47 @@ void pickRandomFirstBart()
     else
     {
         firstBart = nullptr; // No selected Bart
+    }
+}
+
+void findBartOnIndex(int index, int *selectedBarts, SpriteManager *spriteManager, bool itemsButtonToggled)
+{
+    Bart &bart = barts[index];
+    if (!bart.initialized || !bart.body || !(bart.type == BartType::REGULAR_BART || bart.type == BartType::BONUS_BART))
+        return;
+    if (bart.type == BartType::REGULAR_BART && !bart.clicked && *selectedBarts < 6 && !itemsButtonToggled)
+    {
+        bart.clicked = true;
+        bart.type = BartType::BONUS_BART;
+        bart.sprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(spriteManager, "barts"), static_cast<int>(bart.type));
+        pickRandomFirstBart();
+        AudioManager::Play("romfs:/sounds/dsgetpow.opus", 1.0f + (*selectedBarts / 15.0f), false, 1.0f, 0.0f);
+        (*selectedBarts)++;
+    }
+    else if (bart.type == BartType::BONUS_BART && bart.clicked)
+    {
+        bart.clicked = false;
+        bart.type = BartType::REGULAR_BART;
+        bart.sprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(spriteManager, "barts"), static_cast<int>(bart.type));
+        (*selectedBarts)--;
+    }
+}
+
+void paintBartOnIndex(int index, bool gold, int *copperPaintCount, int *goldPaintCount, SpriteManager *spriteManager)
+{
+    Bart &bart = barts[index];
+    if (!bart.initialized || !bart.body || !(bart.type == BartType::REGULAR_BART || bart.type == BartType::BONUS_BART))
+        return;
+    if (bart.type == BartType::REGULAR_BART && !bart.clicked && !gold)
+    {
+        bart.type = BartType::FAKECOPPER_BART;
+        bart.sprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(spriteManager, "barts"), static_cast<int>(bart.type));
+        (*copperPaintCount)--;
+    }
+    else if (bart.type == BartType::REGULAR_BART && !bart.clicked && gold)
+    {
+        bart.type = BartType::FAKEGOLD_BART;
+        bart.sprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(spriteManager, "barts"), static_cast<int>(bart.type));
+        (*goldPaintCount)--;
     }
 }
