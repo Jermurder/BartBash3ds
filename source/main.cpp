@@ -25,9 +25,9 @@ int nextPhase = 0; // new phase to switch to after fade out
 
 SpriteManager spriteManager;
 
-float cursorX = 200;
-float cursorY = 120;
-float cursorSpeed = 1.5f;
+int cursorX = 200;
+int cursorY = 120;
+float cursorSpeed = 1;
 
 int bartTouchIndex = -1;
 bool bartTouchActive = false;
@@ -676,7 +676,7 @@ void drawBottom(C3D_RenderTarget *target)
 
             // Handle dragging logic
             int handleMin = 2;
-            int handleMax = 272;
+            int handleMax = 250;
             int handleY = SCREEN_HEIGHT / 2 - 18;
             int handleRadiusX = 67; //67 36
             int handleRadiusY = 36;
