@@ -32,7 +32,6 @@ float cursorSpeed = 1;
 int bartTouchIndex = -1;
 bool bartTouchActive = false;
 
-
 int gamestate = 0; // 0 = menu, 1 = game
 int selectedBarts;
 int storephase; // 0 menu 1 copper 2 gold
@@ -495,13 +494,55 @@ void drawTop(C3D_RenderTarget *target)
 
             if (itemsButton.toggled)
             {
-                if (copperPaint.toggled && copperPaintCount > 0)
+                // require press+release on the same Bart to paint (cursor-based)
+                static int paintPressIndex = -1;
+                bool canPaintCopper = (copperPaint.toggled && copperPaintCount > 0);
+                bool canPaintGold = (goldPaint.toggled && goldPaintCount > 0);
+
+                // On press, remember which Bart (if any) was under the cursor
+                if ((kDown & KEY_TOUCH) && (canPaintCopper || canPaintGold))
                 {
-                    paintBart(touch, &spriteManager, false, &copperPaintCount, &goldPaintCount);
+                    paintPressIndex = -1;
+                    b2Vec2 testPoint = b2Vec2(PixelsToMeters(cursorX), PixelsToMeters(cursorY));
+                    for (int i = 0; i < 40; ++i)
+                    {
+                        if (!barts[i].initialized || !barts[i].body) continue;
+                        for (b2Fixture* f = barts[i].body->GetFixtureList(); f; f = f->GetNext())
+                        {
+                            if (f->TestPoint(testPoint))
+                            {
+                                paintPressIndex = i;
+                                break;
+                            }
+                        }
+                        if (paintPressIndex != -1) break;
+                    }
                 }
-                else if (goldPaint.toggled && goldPaintCount > 0)
+
+                // On release, if we pressed a Bart and release is over the same Bart, paint it
+                if ((kUp & KEY_TOUCH) && paintPressIndex != -1)
                 {
-                    paintBart(touch, &spriteManager, true, &copperPaintCount, &goldPaintCount);
+                    bool stillOnBart = false;
+                    b2Vec2 testPoint = b2Vec2(PixelsToMeters(cursorX), PixelsToMeters(cursorY));
+                    if (barts[paintPressIndex].initialized && barts[paintPressIndex].body)
+                    {
+                        for (b2Fixture* f = barts[paintPressIndex].body->GetFixtureList(); f; f = f->GetNext())
+                        {
+                            if (f->TestPoint(testPoint))
+                            {
+                                stillOnBart = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (stillOnBart)
+                    {
+                        if (canPaintCopper)
+                            paintBartOnIndex(paintPressIndex, false, &copperPaintCount, &goldPaintCount, &spriteManager);
+                        else if (canPaintGold)
+                            paintBartOnIndex(paintPressIndex, true, &copperPaintCount, &goldPaintCount, &spriteManager);
+                    }
+                    paintPressIndex = -1;
                 }
             }
             if (kDown & KEY_A && selectedBarts > 0)
@@ -643,27 +684,6 @@ void drawBottom(C3D_RenderTarget *target)
     else if (scenemanager.currentScene == 1)
     {
         C2D_DrawSprite(&mainmenuSprites[2]);
-        UIButton_Update(&itemsButton, touch);
-        UIButton_Draw(&itemsButton);
-        if (itemsButton.toggled)
-        {
-            C2D_Sprite copperSprite;
-            C2D_SpriteFromSheet(&copperSprite, SpriteManager_GetSheet(&spriteManager, "Copper"), 0);
-            C2D_SpriteSetPos(&copperSprite, 60, 0);
-            UIButton_Update(&copperPaint, touch);
-            UIButton_Draw(&copperPaint);
-            C2D_DrawSprite(&copperSprite);
-            C2D_Sprite goldSprite;
-            C2D_SpriteFromSheet(&goldSprite, SpriteManager_GetSheet(&spriteManager, "Gold"), 0);
-            C2D_SpriteSetPos(&goldSprite, 125, 0);
-            UIButton_Update(&goldPaint, touch);
-            UIButton_Draw(&goldPaint);
-            C2D_DrawSprite(&goldSprite);
-            copperamount.SetText("(" + std::to_string(copperPaintCount) + ")");
-            copperamount.Draw();
-            goldamount.SetText("(" + std::to_string(goldPaintCount) + ")");
-            goldamount.Draw();
-        }
 
         if (bartphase == 1)
         {
@@ -678,7 +698,7 @@ void drawBottom(C3D_RenderTarget *target)
             int handleMin = 2;
             int handleMax = 250;
             int handleY = SCREEN_HEIGHT / 2 - 18;
-            int handleRadiusX = 67; //67 36
+            int handleRadiusX = 67; // 67 36
             int handleRadiusY = 36;
 
             // Check if touch is on handle
@@ -694,7 +714,7 @@ void drawBottom(C3D_RenderTarget *target)
             // Dragging
             if (draggingHandle && (kHeld & KEY_TOUCH))
             {
-                handlePos = touch.px -34;
+                handlePos = touch.px - 34;
                 if (handlePos < handleMin)
                     handlePos = handleMin;
                 if (handlePos > handleMax)
@@ -716,7 +736,7 @@ void drawBottom(C3D_RenderTarget *target)
             int buttonWidth = 97;
             int buttonHeight = 63;
             int buttonX = 160 - int(buttonWidth / 2);
-            int buttonY = 200 - int (buttonHeight / 2);
+            int buttonY = 200 - int(buttonHeight / 2);
 
             C2D_SpriteFromSheet(&dropButton, SpriteManager_GetSheet(&spriteManager, "newui"), 1);
             C2D_SpriteSetPos(&dropButton, buttonX, buttonY);
@@ -752,8 +772,33 @@ void drawBottom(C3D_RenderTarget *target)
             dropButtonText.Init("DROP!", font, buttonX + 9, buttonY + 42, 1.0f, C2D_Color32(255, 255, 255, 255));
             dropButtonText.Draw();
         }
-        else {
-        
+        else if (bartphase == 0)
+        {
+            UIButton_Update(&itemsButton, touch);
+            UIButton_Draw(&itemsButton);
+            if (itemsButton.toggled)
+            {
+                C2D_Sprite copperSprite;
+                C2D_SpriteFromSheet(&copperSprite, SpriteManager_GetSheet(&spriteManager, "Copper"), 0);
+                C2D_SpriteSetPos(&copperSprite, 60, 0);
+                UIButton_Update(&copperPaint, touch);
+                UIButton_Draw(&copperPaint);
+                C2D_DrawSprite(&copperSprite);
+                C2D_Sprite goldSprite;
+                C2D_SpriteFromSheet(&goldSprite, SpriteManager_GetSheet(&spriteManager, "Gold"), 0);
+                C2D_SpriteSetPos(&goldSprite, 125, 0);
+                UIButton_Update(&goldPaint, touch);
+                UIButton_Draw(&goldPaint);
+                C2D_DrawSprite(&goldSprite);
+                copperamount.SetText("(" + std::to_string(copperPaintCount) + ")");
+                copperamount.Draw();
+                goldamount.SetText("(" + std::to_string(goldPaintCount) + ")");
+                goldamount.Draw();
+            }
+        }
+        else
+        {
+
             C2D_SpriteFromSheet(&TouchPadSprite, SpriteManager_GetSheet(&spriteManager, "newui"), 8);
             C2D_DrawSprite(&TouchPadSprite);
         }
@@ -874,7 +919,6 @@ void updateBarts(float deltaTime, SpriteManager *spriteManager)
     }
 }
 
-
 void updateCursorFromTouch()
 {
     static bool isTouching = false;
@@ -894,10 +938,14 @@ void updateCursorFromTouch()
         int dy = touch.py - lastTouchY;
         cursorX += dx * cursorSpeed;
         cursorY += dy * cursorSpeed;
-        if (cursorX < 0) cursorX = 0;
-        if (cursorX > SCREEN_WIDTH) cursorX = SCREEN_WIDTH;
-        if (cursorY < 0) cursorY = 0;
-        if (cursorY > SCREEN_HEIGHT) cursorY = SCREEN_HEIGHT;
+        if (cursorX < 0)
+            cursorX = 0;
+        if (cursorX > SCREEN_WIDTH)
+            cursorX = SCREEN_WIDTH;
+        if (cursorY < 0)
+            cursorY = 0;
+        if (cursorY > SCREEN_HEIGHT)
+            cursorY = SCREEN_HEIGHT;
         lastTouchX = touch.px;
         lastTouchY = touch.py;
     }
@@ -907,7 +955,6 @@ void updateCursorFromTouch()
         isTouching = false;
     }
 }
-
 
 int main(int argc, char *argv[])
 {

@@ -72,7 +72,7 @@ void updateBartFading(Bart* bart, SpriteManager* spriteManager, float deltaTime)
 void counting(int *multiplier, b2Body *player);
 void resetBarts();
 void reInitBarts();
-void paintBart(touchPosition touch, SpriteManager *spriteManager, bool gold, int *copperPaintCount, int *goldPaintCount);
+void paintBart(int cursorX, int cursorY, SpriteManager *spriteManager, bool gold, int *copperPaintCount, int *goldPaintCount);
 void pickRandomFirstBart();
 void paintBartOnIndex(int index, bool gold, int *copperPaintCount, int *goldPaintCount, SpriteManager *spriteManager);
 void findBartOnIndex(int index, int *selectedBarts, SpriteManager *spriteManager, bool itemsButtonToggled);

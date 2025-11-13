@@ -46,10 +46,9 @@ void drawBarts()
                 barts[i].opacity -= DeltaTime_Get() * 3.0f;
                 if (barts[i].opacity <= 0.0f)
                 {
-                    barts[i].body->DestroyFixture(barts[i].body->GetFixtureList());
-                    barts[i].initialized = false;
-                    barts[i].dissapearing = false; // Stop dissapearing
-                    continue;                      // Skip drawing this Bart
+                    deinitBart(&barts[i]);
+                    barts[i].dissapearing = false;
+                    continue; // Skip drawing this Bart
                 }
             }
 
@@ -275,9 +274,9 @@ void findBart(int touchX, int touchY, int *selectedBarts, SpriteManager *spriteM
     }
 }
 
-void paintBart(touchPosition touch, SpriteManager *spriteManager, bool gold, int *copperPaintCount, int *goldPaintCount)
+void paintBart(int cursorX, int cursorY, SpriteManager *spriteManager, bool gold, int *copperPaintCount, int *goldPaintCount)
 {
-    b2Vec2 testPoint = b2Vec2(PixelsToMeters(touch.px), PixelsToMeters(touch.py));
+    b2Vec2 testPoint = b2Vec2(PixelsToMeters(cursorX), PixelsToMeters(cursorY));
     for (int i = 0; i < 40; ++i)
     {
         if (!barts[i].initialized || !barts[i].body || !(barts[i].type == BartType::REGULAR_BART || barts[i].type == BartType::BONUS_BART))
@@ -305,14 +304,24 @@ void paintBart(touchPosition touch, SpriteManager *spriteManager, bool gold, int
 
 void deinitBart(Bart *bart)
 {
-    bart->initialized = false;
+    if (!bart) return;
+    // destroy physics body (and its fixtures) if present
     if (bart->body)
     {
         PhysicsManager_GetWorld()->DestroyBody(bart->body);
         bart->body = nullptr;
     }
-    // Optionally hide sprite or set to a blank image
-    bart->sprite.image = C2D_Image(); // Set to empty image if available
+    // clear state so reinit/spawn logic can recreate cleanly
+    bart->initialized = false;
+    bart->clicked = false;
+    bart->touched = false;
+    bart->pendingActivation = false;
+    bart->dissapearing = false;
+    bart->fadeState = FadeState::None;
+    bart->fadeTimer = 0.0f;
+    bart->opacity = 0.0f;
+    // clear or set sprite to empty so it won't be drawn accidentally
+    bart->sprite.image = C2D_Image();
 }
 
 void reinitBart(Bart *bart, SpriteManager *spriteManager)
