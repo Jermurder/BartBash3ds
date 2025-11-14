@@ -20,11 +20,11 @@ void PhysicsManager_Init()
 
     // Ground
     b2BodyDef groundDef;
-    groundDef.position.Set(PixelsToMeters(200), PixelsToMeters(230)); // center bottom
+    groundDef.position.Set(PixelsToMeters(0), PixelsToMeters(230)); // center bottom
     b2Body *ground = world->CreateBody(&groundDef);
 
     b2PolygonShape groundShape;
-    groundShape.SetAsBox(PixelsToMeters(320) / 2.0f, PixelsToMeters(10)); // full width floor
+    groundShape.SetAsBox(PixelsToMeters(500), PixelsToMeters(10)); // full width floor
     ground->CreateFixture(&groundShape, 0.0f);
 
     // Left wall

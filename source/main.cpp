@@ -774,6 +774,8 @@ void drawBottom(C3D_RenderTarget *target)
         }
         else if (bartphase == 0)
         {
+            C2D_SpriteFromSheet(&TouchPadSprite, SpriteManager_GetSheet(&spriteManager, "newui"), 8);
+            C2D_DrawSprite(&TouchPadSprite);
             UIButton_Update(&itemsButton, touch);
             UIButton_Draw(&itemsButton);
             if (itemsButton.toggled)
