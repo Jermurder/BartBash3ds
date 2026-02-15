@@ -3,8 +3,8 @@
 #include <citro2d.h>
 #include <iterator>
 #include <box2d/box2d.h>
-#include <random> // For std::random_device, std::mt19937, std::discrete_distribution
-#include <array>  // For std::array
+#include <random>
+#include <array>
 #include "sprite_manager.h"
 #include "physics_manager.h"
 struct SpriteManager;
@@ -37,7 +37,7 @@ struct Bart
     bool touched;
     bool clicked;
     bool initialized = false;
-    bool pendingActivation = false; // Add this flag
+    bool pendingActivation = false;
     C2D_Sprite sprite;
     b2Body *body = nullptr;
 
@@ -46,8 +46,8 @@ struct Bart
     float fadeTimer = 0.0f;
     bool pendingReset = false;
     bool dissapearing = false;
-    float tintAmount;    // Ranges from 0.0 (no tint) to 1.0 (full dark)
-    float tintTarget;    // Desired target (0.0 when touched, 0.5 or so when idle)
+    float tintAmount;
+    float tintTarget;
 };
 
 extern Bart barts[40];

@@ -1,6 +1,6 @@
 #include "ui_button.h"
-#include <3ds.h>     // For hidKeysDown, hidKeysUp and touchPosition
-#include <citro2d.h> // For C2D_Sprite
+#include <3ds.h>
+#include <citro2d.h>
 
 void UIButton_Init(UIButton *btn, C2D_SpriteSheet sheet, int spriteNormal, float x, float y, float width, float height, u32 color, bool outline, bool sound)
 {
@@ -37,7 +37,6 @@ void UIButton_SetPressedSprite(UIButton *btn, int spritePressed)
 
 void UIButton_Update(UIButton *btn, touchPosition touch)
 {
-    // Check if touch is within button bounds
     btn->hovered = (touch.px >= btn->x && touch.px <= btn->x + btn->width &&
                     touch.py >= btn->y && touch.py <= btn->y + btn->height);
 

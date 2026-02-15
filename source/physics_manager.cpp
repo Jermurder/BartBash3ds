@@ -18,7 +18,6 @@ void PhysicsManager_Init()
     b2Vec2 gravity(0.0f, 9.8f);
     world = new b2World(gravity);
 
-    // Ground
     b2BodyDef groundDef;
     groundDef.position.Set(PixelsToMeters(0), PixelsToMeters(230)); // center bottom
     b2Body *ground = world->CreateBody(&groundDef);
@@ -27,7 +26,6 @@ void PhysicsManager_Init()
     groundShape.SetAsBox(PixelsToMeters(500), PixelsToMeters(10)); // full width floor
     ground->CreateFixture(&groundShape, 0.0f);
 
-    // Left wall
     b2BodyDef leftWallDef;
     leftWallDef.position.Set(PixelsToMeters(20), PixelsToMeters(120)); // 40px from left, vertically centered
     b2Body *leftWall = world->CreateBody(&leftWallDef);
@@ -36,7 +34,6 @@ void PhysicsManager_Init()
     leftWallShape.SetAsBox(PixelsToMeters(10), PixelsToMeters(120)); // 20px wide, 240px tall
     leftWall->CreateFixture(&leftWallShape, 0.0f);
 
-    // Right wall
     b2BodyDef rightWallDef;
     rightWallDef.position.Set(PixelsToMeters(320 - 50), PixelsToMeters(120)); // 40px from right, vertically centered
     b2Body *rightWall = world->CreateBody(&rightWallDef);
@@ -66,20 +63,16 @@ void PhysicsManager_SpawnPlayer(float screenX, float screenY)
     def.position.Set(PixelsToMeters(screenX), PixelsToMeters(screenY));
     playerBody = world->CreateBody(&def);
 
-    // Capsule dimensions
-    float halfWidth = PixelsToMeters(3);   // radius for circles, half-width for box
-    float halfHeight = PixelsToMeters(15); // half-height for box
+    float halfWidth = PixelsToMeters(3);
+    float halfHeight = PixelsToMeters(15);
 
-    // Rectangle (center)
     b2PolygonShape box;
     box.SetAsBox(halfWidth, halfHeight);
 
-    // Top circle
     b2CircleShape topCircle;
     topCircle.m_radius = halfWidth;
     topCircle.m_p.Set(0, -halfHeight);
 
-    // Bottom circle
     b2CircleShape bottomCircle;
     bottomCircle.m_radius = halfWidth;
     bottomCircle.m_p.Set(0, halfHeight);
@@ -89,9 +82,6 @@ void PhysicsManager_SpawnPlayer(float screenX, float screenY)
     fix.friction = 0.1f;
     fix.restitution = 0.7f;
 
-    // playerBody->SetLinearDamping(1.0f); // Less friction than barts
-
-    // Attach all three shapes to the player body
     fix.shape = &box;
     playerBody->CreateFixture(&fix);
 
@@ -101,7 +91,7 @@ void PhysicsManager_SpawnPlayer(float screenX, float screenY)
     fix.shape = &bottomCircle;
     playerBody->CreateFixture(&fix);
 
-    playerBody->SetGravityScale(0.8f); // Falls at half normal speed
+    playerBody->SetGravityScale(0.8f);
 }
 
 b2Body *PhysicsManager_GetPlayer()
@@ -138,19 +128,14 @@ void PhysicsManager_TogglePlayerFrozen()
 
 void applyRandomUpwardForce(b2Body* body)
 {
-    // Random engine setup
     static std::random_device rd;
     static std::mt19937 gen(rd());
 
-    // Horizontal force range, e.g., -5 to +5
     std::uniform_real_distribution<float> distX(-0.05f, 0.05f);
 
-    // Fixed upward force
     float upwardForce = -0.05f;
 
-    // Create force vector
     b2Vec2 force(distX(gen), upwardForce);
 
-    // Apply the force to the center of mass
     body->ApplyLinearImpulseToCenter(force, true);
 }

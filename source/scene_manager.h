@@ -14,7 +14,6 @@ typedef enum
 struct Scene
 {
 	const char *name;
-	// Add other members as needed
 };
 
 struct SceneManager
@@ -27,7 +26,6 @@ struct SceneManager
 	Scene scenes[6];
 	int allocatedscenes[6];
 
-	// C++ constructor: ONLY if compiled as C++
 	SceneManager()
 		: currentScene(0),
 		  transitionProgress(0.0f),

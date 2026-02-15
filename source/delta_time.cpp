@@ -1,4 +1,4 @@
-// delta_time.c
+
 #include "delta_time.h"
 
 static u64 lastTime = 0;

@@ -81,14 +81,14 @@ void initBarts(SpriteManager *spriteManager)
             shape.SetAsBox(PixelsToMeters(7), PixelsToMeters(15));
             b2FixtureDef fix;
             fix.shape = &shape;
-            fix.density = 0.5f;     // Very low mass
-            fix.friction = 0.0f;    // Very slippery
-            fix.restitution = 0.8f; // Very bouncy
+            fix.density = 0.5f;
+            fix.friction = 0.0f;
+            fix.restitution = 0.8f;
             barts[i].body->CreateFixture(&fix);
 
-            barts[i].body->SetGravityScale(0.0f);   // Prevent falling into a pile
-            barts[i].body->SetLinearDamping(1.0f);  // Reduce movement after spawn
-            barts[i].body->SetAngularDamping(2.0f); // Strongly damp rotation
+            barts[i].body->SetGravityScale(0.0f);
+            barts[i].body->SetLinearDamping(1.0f);
+            barts[i].body->SetAngularDamping(2.0f);
 
             int spriteIndex = static_cast<int>(barts[i].type);
             printf("Bart %d: SpriteSheet=%p, SpriteIndex=%d\n", i, SpriteManager_GetSheet(spriteManager, "barts"), spriteIndex);
@@ -113,7 +113,7 @@ void addBart(float x, float y, BartType type)
             barts[i].touched = false;
             barts[i].clicked = false;
             barts[i].initialized = true;
-            barts[i].opacity = 1.0f; // <-- Reset opacity to fully visible
+            barts[i].opacity = 1.0f;
             return;
         }
     }
@@ -147,7 +147,7 @@ BartType getRandomBartType()
             return c.type;
     }
 
-    return BartType::REGULAR_BART; // fallback
+    return BartType::REGULAR_BART;
 }
 
 void spawnBarts()
@@ -157,10 +157,10 @@ void spawnBarts()
     const int maxAttemptsPerBart = 100;
 
     // Random number generator setup
-    static std::random_device rd;                   // Seed source (once)
-    static std::mt19937 gen(rd());                  // Mersenne Twister RNG
-    std::uniform_int_distribution<> distX(40, 260); // 240 + 40 - 1 = 279
-    std::uniform_int_distribution<> distY(80, 200); // 140 + 80 - 1 = 219
+    static std::random_device rd;                  
+    static std::mt19937 gen(rd());                 
+    std::uniform_int_distribution<> distX(40, 260);
+    std::uniform_int_distribution<> distY(80, 200);
 
     for (int i = 0; i < count; i++)
     {
@@ -185,7 +185,7 @@ void spawnBarts()
                 if (distSq < minDistance * minDistance)
                 {
                     positionOkay = false;
-                    break; // Too close, try again
+                    break;
                 }
             }
 
@@ -221,7 +221,6 @@ void updateBartsAfterPhysics()
             // Change to dynamic
             barts[i].body->SetType(b2_dynamicBody);
 
-            // Create new fixture with non-zero density
             b2PolygonShape shape;
             shape.SetAsBox(PixelsToMeters(8), PixelsToMeters(15));
             b2FixtureDef fix;
@@ -234,7 +233,7 @@ void updateBartsAfterPhysics()
             barts[i].body->SetLinearDamping(1.0f);
             barts[i].body->SetGravityScale(0.0f);
 
-            barts[i].pendingActivation = false; // Clear flag
+            barts[i].pendingActivation = false;
         }
     }
 }
@@ -305,13 +304,11 @@ void paintBart(int cursorX, int cursorY, SpriteManager *spriteManager, bool gold
 void deinitBart(Bart *bart)
 {
     if (!bart) return;
-    // destroy physics body (and its fixtures) if present
     if (bart->body)
     {
         PhysicsManager_GetWorld()->DestroyBody(bart->body);
         bart->body = nullptr;
     }
-    // clear state so reinit/spawn logic can recreate cleanly
     bart->initialized = false;
     bart->clicked = false;
     bart->touched = false;
@@ -320,15 +317,14 @@ void deinitBart(Bart *bart)
     bart->fadeState = FadeState::None;
     bart->fadeTimer = 0.0f;
     bart->opacity = 0.0f;
-    // clear or set sprite to empty so it won't be drawn accidentally
     bart->sprite.image = C2D_Image();
 }
 
 void reinitBart(Bart *bart, SpriteManager *spriteManager)
 {
     bart->initialized = true;
-    bart->opacity = 1.0f; // <-- Reset opacity to fully visible
-    // Restore Box2D body
+    bart->opacity = 1.0f;
+
     b2World *world = PhysicsManager_GetWorld();
     b2BodyDef def;
     def.type = b2_dynamicBody;
@@ -349,7 +345,6 @@ void reinitBart(Bart *bart, SpriteManager *spriteManager)
     bart->body->SetLinearDamping(1.0f);
     bart->body->SetAngularDamping(20.0f);
 
-    // Restore sprite
     int spriteIndex = static_cast<int>(bart->type);
     bart->sprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(spriteManager, "barts"), spriteIndex);
     C2D_SpriteSetCenter(&bart->sprite, 0.5f, 0.5f);
@@ -359,7 +354,7 @@ void reinitBart(Bart *bart, SpriteManager *spriteManager)
 void addMultiplier(int *multiplier, Bart bart)
 {
     if (bart.touched)
-        return; // No multiplier if not touched
+        return;
     if (bart.type == BartType::REGULAR_BART)
     {
         *multiplier += 2;
@@ -400,19 +395,19 @@ void addMultiplier(int *multiplier, Bart bart)
 
 void resetMultiplier(int *multiplier)
 {
-    *multiplier = 1; // Reset to 1x
+    *multiplier = 1;
 }
 
 void counting(int *multiplier, b2Body *player)
 {
-    static float fadeSpeed = 500.0f; // adjust as needed
+    static float fadeSpeed = 500.0f;
 
     if (*currentRoundPtr >= 3 && sceneChangedAfterRounds == false)
     {
         changeScene(&scenemanager, 4);
         sceneChangedAfterRounds = true;
     }
-    // --- Fade logic should always run if a fade is active ---
+
     if (bartFadePhase != FadePhase::None)
     {
         if (bartFadePhase == FadePhase::FadingIn && (*currentRoundPtr < 3))
@@ -421,7 +416,7 @@ void counting(int *multiplier, b2Body *player)
             if (bartFading >= 255.0f)
             {
                 bartFading = 255.0f;
-                // Do your reset logic here
+
                 score = (basescore * *multiplier) * bartsTouched;
                 *multiplier = 1;
                 bartsTouched = 1;
@@ -447,18 +442,15 @@ void counting(int *multiplier, b2Body *player)
                     bartFading = 0.0f;
                     bartFadePhase = FadePhase::None;
 
-                    // Only now, after fade-out, increment round and possibly change scene
                 }
             
         }
 
-        // Always draw the fade overlay if in a fade phase
         
         C2D_DrawRectSolid(0, 0, 0, 400, 240, C2D_Color32(0, 0, 0, (u8)bartFading));
-        return; // Don't run the rest of the logic while fading
+        return;
     }
 
-    // --- Only start fade if counting and phase are correct ---
     if (startcounting && bartphase == 2)
     {
         roundtimer -= DeltaTime_Get();
@@ -480,7 +472,7 @@ void counting(int *multiplier, b2Body *player)
 
 void updateBartFading(Bart *bart, SpriteManager *spriteManager, float deltaTime)
 {
-    const float fadeDuration = 0.3f; // seconds
+    const float fadeDuration = 0.3f;
 
     if (bart->fadeState == FadeState::FadingOut)
     {
@@ -524,8 +516,8 @@ void resetBarts()
             deinitBart(&barts[i]);
         }
     }
-    spawnBarts();  // Generates new positions
-    reInitBarts(); // Reinitialize barts with new positions
+    spawnBarts();
+    reInitBarts();
 }
 
 void reInitBarts()
@@ -559,7 +551,7 @@ void pickRandomFirstBart()
     }
     else
     {
-        firstBart = nullptr; // No selected Bart
+        firstBart = nullptr;
     }
 }
 

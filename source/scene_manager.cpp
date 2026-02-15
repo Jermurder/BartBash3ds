@@ -17,11 +17,9 @@ void AddScene(SceneManager *scenemanager, const char *sceneName)
 
 void changeScene(SceneManager *scenemanager, int sceneIndex)
 {
-    // Prevent transition if already transitioning
     if (scenemanager->isTransitioning)
         return;
 
-    // Prevent transition to the current scene
     if (sceneIndex == scenemanager->currentScene)
         return;
 

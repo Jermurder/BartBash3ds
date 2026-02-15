@@ -1,8 +1,8 @@
 #pragma once
 #include <3ds.h>
 #include <citro2d.h>
-#include "ui_text.h" // Required because you use UIText*
-#include "audio_manager.h" // Required for audio functions
+#include "ui_text.h"
+#include "audio_manager.h"
 typedef struct
 {
     int x, y, width, height;

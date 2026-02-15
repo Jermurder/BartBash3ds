@@ -19,7 +19,7 @@ void CollisionListener::BeginContact(b2Contact *contact)
         {
             if (barts[i].body->GetType() == b2_staticBody)
             {
-                barts[i].pendingActivation = true; // Set flag, don't activate here!
+                barts[i].pendingActivation = true;
             }
             addMultiplier(&multiplier, barts[i]);
             if (barts[i].touched == false)

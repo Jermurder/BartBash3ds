@@ -11,7 +11,6 @@ constexpr int BOTTOMSCREEN_HEIGHT = 240;
 #define SOC_BUFFERSIZE 0x100000
 static u32 *SOC_buffer = nullptr;
 
-// Persistent state
 bool holdingCopper = false;
 bool holdingGold = false;
 
@@ -92,6 +91,8 @@ UIButton backToEnd;
 
 UIButton backButton, buyButton;
 
+
+
 bool redrawTop = true;
 bool redrawBottom = true;
 
@@ -112,7 +113,6 @@ void initSOC()
     SOC_buffer = (u32 *)memalign(SOC_ALIGN, SOC_BUFFERSIZE);
     if (!SOC_buffer)
     {
-        // Can't use printf yet, fallback to crash
         svcBreak(USERBREAK_PANIC);
     }
 
@@ -694,24 +694,20 @@ void drawBottom(C3D_RenderTarget *target)
             C2D_SpriteSetPos(&railSprite, 320 / 2, SCREEN_HEIGHT / 2);
             C2D_DrawSprite(&railSprite);
 
-            // Handle dragging logic
             int handleMin = 2;
             int handleMax = 250;
             int handleY = SCREEN_HEIGHT / 2 - 18;
-            int handleRadiusX = 67; // 67 36
+            int handleRadiusX = 67;
             int handleRadiusY = 36;
 
-            // Check if touch is on handle
             bool touchOnHandle = (touch.px >= handlePos && touch.px <= handlePos + handleRadiusX &&
                                   touch.py >= handleY && touch.py <= handleY + handleRadiusY);
 
             handleSprite.image = C2D_SpriteSheetGetImage(SpriteManager_GetSheet(&spriteManager, "newui"), 3);
 
-            // Start dragging
             if (kDown & KEY_TOUCH && touchOnHandle)
                 draggingHandle = true;
 
-            // Dragging
             if (draggingHandle && (kHeld & KEY_TOUCH))
             {
                 handlePos = touch.px - 34;
@@ -856,7 +852,6 @@ void drawBottom(C3D_RenderTarget *target)
             // On touch release
             if (kUp & KEY_TOUCH)
             {
-                // Use cached releaseX/releaseY instead of touch.px/py (which is now 0)
                 bool releasedOverCopper = releaseX >= offsetX + 156 + 30 && releaseX <= offsetX + 156 + 92 + 30 &&
                                           releaseY >= 80 && releaseY <= 240;
 
